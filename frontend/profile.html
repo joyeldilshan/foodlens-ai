@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FoodLens AI | My Profile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --deep: #08060f;
+  --sidebar-bg: #0d0a1a;
+  --card-bg: #110e1c;
+  --surface: #160f26;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.18);
+  --text: #f2eeff;
+  --muted: #8b82a8;
+  --muted2: #5c5474;
+  --violet: #7c4dff;
+  --pink: #e040d0;
+  --teal: #1de9b6;
+  --orange: #ff6b2b;
+  --gold: #f5c842;
+  --rose: #ff4d6d;
+  --green: #22c55e;
+  --sidebar-w: 260px;
+}
+
+html, body { height:100%; overflow:hidden; }
+body {
+  background: var(--deep);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text);
+  display: flex;
+}
+
+/* ===== AURORA ===== */
+.aurora { position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none; }
+.orb { position:absolute;border-radius:50%;filter:blur(100px);opacity:0; }
+.orb1{width:650px;height:650px;background:radial-gradient(circle,#7c4dff44,#e040d022);top:-220px;left:-100px;animation:orbFloat 18s ease-in-out infinite alternate,orbIn 1.5s 0.3s forwards;}
+.orb2{width:500px;height:500px;background:radial-gradient(circle,#1de9b633,#7c4dff22);bottom:-150px;right:-100px;animation:orbFloat 22s 1s ease-in-out infinite alternate,orbIn 1.5s 0.6s forwards;}
+.orb3{width:380px;height:380px;background:radial-gradient(circle,#ff6b2b2a,#e040d018);top:40%;left:50%;animation:orbFloat 16s 2s ease-in-out infinite alternate,orbIn 1.5s 0.9s forwards;}
+@keyframes orbFloat{0%{transform:translate(0,0) scale(1);}50%{transform:translate(40px,-60px) scale(1.1);}100%{transform:translate(-30px,40px) scale(0.95);}}
+@keyframes orbIn{to{opacity:1;}}
+
+.grid-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
+  background-size:60px 60px;}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width:var(--sidebar-w);height:100vh;
+  background:var(--sidebar-bg);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:fixed;z-index:10;overflow:hidden;
+}
+.sidebar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#7c4dff,#e040d0,#ff6b2b,#f5c842,#1de9b6,#7c4dff);
+  background-size:300%;animation:gradSlide 5s linear infinite;
+}
+@keyframes gradSlide{0%{background-position:0%;}100%{background-position:300%;}}
+
+.sidebar-head{
+  padding:22px 20px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.s-logo{
+  width:38px;height:38px;border-radius:11px;
+  background:linear-gradient(135deg,#7c4dff,#e040d0);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  box-shadow:0 0 16px rgba(124,77,255,0.45);flex-shrink:0;
+  animation:logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 16px rgba(124,77,255,0.45);}50%{box-shadow:0 0 28px rgba(224,64,208,0.6);}}
+.s-brand{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;background:linear-gradient(90deg,#c9b8ff,#f0a0e0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.s-sub{font-size:0.63rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal);display:block;margin-top:1px;}
+
+.sidebar-nav{flex:1;padding:14px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;}
+.nav-section-label{font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted2);font-weight:600;padding:8px 10px 4px;margin-top:4px;}
+
+.nav-btn{
+  width:100%;padding:10px 14px;border:none;background:transparent;
+  color:var(--muted);cursor:pointer;border-radius:12px;
+  display:flex;align-items:center;gap:12px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:0.82rem;font-weight:500;
+  transition:all 0.22s;text-align:left;position:relative;
+  text-decoration:none;
+}
+.nav-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(255,255,255,0.05);flex-shrink:0;transition:all 0.22s;}
+.nav-btn:hover{background:rgba(255,255,255,0.05);color:var(--text);}
+.nav-btn:hover .nav-icon{background:rgba(124,77,255,0.15);}
+.nav-btn.active{background:rgba(124,77,255,0.14);color:var(--text);border:1px solid rgba(124,77,255,0.22);}
+.nav-btn.active .nav-icon{background:rgba(124,77,255,0.25);}
+.nav-btn.active::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:3px;border-radius:0 3px 3px 0;background:var(--violet);}
+.nav-btn.danger{color:var(--rose);}
+.nav-btn.danger:hover{background:rgba(255,77,109,0.1);color:var(--rose);}
+
+.sidebar-footer{
+  padding:14px 18px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.user-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,#7c4dff,#1de9b6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.user-info strong{display:block;font-size:0.76rem;font-weight:600;color:var(--text);}
+.user-info span{font-size:0.66rem;color:var(--muted2);}
+
+/* ===== MAIN ===== */
+.main{
+  flex:1;height:100vh;overflow-y:auto;
+  margin-left:var(--sidebar-w);
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;
+}
+
+/* Topbar */
+.topbar{
+  height:64px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+  background:rgba(8,6,15,0.65);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:5;
+}
+.topbar h1{
+  font-family:'Fraunces',serif;font-size:1.3rem;font-weight:600;
+  background:linear-gradient(90deg,#fff,#c9b8ff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-pill{
+  padding:7px 14px;border:1px solid var(--border);border-radius:50px;
+  font-size:0.72rem;color:var(--muted);font-weight:500;
+  display:flex;align-items:center;gap:6px;
+}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:statusPulse 2s ease-in-out infinite;}
+@keyframes statusPulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* ===== CONTENT ===== */
+.content{flex:1;padding:32px;max-width:900px;margin:0 auto;width:100%;}
+
+/* Profile hero */
+.profile-hero{
+  display:flex;align-items:center;gap:24px;
+  padding:28px 32px;
+  background:var(--card-bg);border:1px solid var(--border);border-radius:24px;
+  position:relative;overflow:hidden;margin-bottom:24px;
+  opacity:0;transform:translateY(20px);
+  animation:fadeUp 0.6s 0.1s ease forwards;
+}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0);}}
+
+.profile-hero::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#7c4dff,#e040d0,#ff6b2b,#f5c842,#1de9b6,#7c4dff);
+  background-size:300%;animation:gradSlide 5s linear infinite;
+}
+.profile-hero::after{
+  content:'';position:absolute;top:0;right:0;width:250px;height:100%;
+  background:radial-gradient(ellipse at right,rgba(124,77,255,0.08),transparent 70%);
+  pointer-events:none;
+}
+
+.avatar-wrap{position:relative;flex-shrink:0;}
+.avatar-circle{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(135deg,#7c4dff,#e040d0,#1de9b6);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-size:2rem;font-weight:700;color:#fff;
+  box-shadow:0 0 30px rgba(124,77,255,0.4);
+  animation:avatarPulse 4s ease-in-out infinite;
+  cursor:pointer;position:relative;overflow:hidden;
+}
+@keyframes avatarPulse{0%,100%{box-shadow:0 0 20px rgba(124,77,255,0.4);}50%{box-shadow:0 0 40px rgba(224,64,208,0.6);}}
+.avatar-edit-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,0.55);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;opacity:0;transition:opacity 0.22s;border-radius:50%;
+}
+.avatar-circle:hover .avatar-edit-overlay{opacity:1;}
+.avatar-online{
+  position:absolute;bottom:4px;right:4px;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--teal);border:3px solid var(--card-bg);
+}
+
+.profile-info{flex:1;}
+.profile-info h2{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;margin-bottom:4px;}
+.profile-info p{font-size:0.82rem;color:var(--muted);margin-bottom:12px;}
+.profile-badges{display:flex;gap:8px;flex-wrap:wrap;}
+.badge{
+  padding:4px 12px;border-radius:50px;font-size:0.7rem;font-weight:600;
+  border:1px solid;letter-spacing:0.06em;
+}
+.badge-diet{color:#1de9b6;border-color:rgba(29,233,182,0.3);background:rgba(29,233,182,0.08);}
+.badge-member{color:#f5c842;border-color:rgba(245,200,66,0.3);background:rgba(245,200,66,0.08);}
+.badge-orders{color:#a88bff;border-color:rgba(124,77,255,0.3);background:rgba(124,77,255,0.08);}
+
+.profile-stats{
+  display:flex;flex-direction:column;gap:8px;align-items:flex-end;
+  flex-shrink:0;
+}
+.pstat{text-align:right;}
+.pstat-num{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;line-height:1;}
+.pstat-label{font-size:0.68rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;}
+
+/* ===== TABS ===== */
+.tabs{
+  display:flex;gap:4px;
+  background:var(--card-bg);border:1px solid var(--border);border-radius:16px;
+  padding:5px;margin-bottom:24px;
+  opacity:0;transform:translateY(16px);
+  animation:fadeUp 0.6s 0.2s ease forwards;
+}
+.tab-btn{
+  flex:1;padding:10px 16px;border:none;background:transparent;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:0.82rem;font-weight:500;
+  color:var(--muted);cursor:pointer;border-radius:12px;
+  transition:all 0.22s;display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.tab-btn:hover{color:var(--text);background:rgba(255,255,255,0.04);}
+.tab-btn.active{background:rgba(124,77,255,0.18);color:var(--text);border:1px solid rgba(124,77,255,0.3);}
+.tab-icon{font-size:15px;}
+
+/* Tab panels */
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ===== FORM PANELS ===== */
+.form-panel{
+  background:var(--card-bg);border:1px solid var(--border);border-radius:20px;
+  padding:26px 28px;margin-bottom:20px;
+  position:relative;overflow:hidden;
+  opacity:0;transform:translateY(16px);
+  animation:fadeUp 0.6s ease forwards;
+}
+.form-panel:nth-child(1){animation-delay:0.1s;}
+.form-panel:nth-child(2){animation-delay:0.2s;}
+.form-panel:nth-child(3){animation-delay:0.3s;}
+
+.form-panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;
+  transition:opacity 0.3s;
+}
+.form-panel:nth-child(1)::before{background:linear-gradient(90deg,#7c4dff,#e040d0);}
+.form-panel:nth-child(2)::before{background:linear-gradient(90deg,#ff6b2b,#f5c842);}
+.form-panel:nth-child(3)::before{background:linear-gradient(90deg,#1de9b6,#7c4dff);}
+.form-panel:hover::before{opacity:1;}
+
+.panel-head{
+  display:flex;align-items:center;gap:12px;margin-bottom:22px;
+  padding-bottom:16px;border-bottom:1px solid var(--border);
+}
+.panel-icon{
+  width:40px;height:40px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+.pi-v{background:rgba(124,77,255,0.18);}
+.pi-o{background:rgba(255,107,43,0.15);}
+.pi-t{background:rgba(29,233,182,0.15);}
+.pi-r{background:rgba(255,77,109,0.15);}
+.panel-head-text h3{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;color:var(--text);margin-bottom:2px;}
+.panel-head-text p{font-size:0.76rem;color:var(--muted);}
+
+/* Form grid */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-full{grid-column:1/-1;}
+
+.field{display:flex;flex-direction:column;gap:7px;}
+.field label{font-size:0.67rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+
+.input-wrap{position:relative;}
+.field-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  font-size:15px;opacity:0.45;pointer-events:none;
+}
+
+.field input,
+.field select{
+  width:100%;padding:12px 14px 12px 42px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:0.88rem;color:var(--text);
+  outline:none;transition:all 0.25s;appearance:none;-webkit-appearance:none;
+}
+.field input::placeholder{color:var(--muted2);}
+.field input:focus,.field select:focus{
+  border-color:transparent;background:rgba(124,77,255,0.1);
+  box-shadow:0 0 0 1.5px #7c4dff,0 0 20px rgba(124,77,255,0.2);
+}
+.field input.success-input{
+  border-color:transparent;background:rgba(29,233,182,0.08);
+  box-shadow:0 0 0 1.5px #1de9b6,0 0 16px rgba(29,233,182,0.15);
+}
+.field input.error-input{
+  border-color:transparent;background:rgba(255,77,109,0.08);
+  box-shadow:0 0 0 1.5px var(--rose),0 0 16px rgba(255,77,109,0.15);
+}
+.field select option{background:#1a1425;color:var(--text);}
+
+/* Password strength */
+.pw-strength-wrap{margin-top:8px;}
+.pw-strength-bar{
+  height:3px;border-radius:2px;background:rgba(255,255,255,0.08);
+  overflow:hidden;margin-bottom:4px;
+}
+.pw-strength-fill{height:100%;border-radius:2px;transition:all 0.4s;width:0%;}
+.pw-strength-label{font-size:0.68rem;color:var(--muted2);}
+
+/* Password toggle */
+.pw-toggle{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:15px;padding:2px;transition:color 0.2s;
+}
+.pw-toggle:hover{color:var(--text);}
+
+/* Diet pills */
+.diet-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;}
+.diet-pill{
+  padding:9px 18px;font-size:0.78rem;font-weight:500;border-radius:50px;
+  cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,0.03);
+  color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.22s;
+}
+.diet-pill:hover{border-color:var(--border-hover);color:var(--text);}
+.diet-pill.dp-any.sel  {background:rgba(245,200,66,0.12);border-color:rgba(245,200,66,0.4);color:#f5c842;}
+.diet-pill.dp-veg.sel  {background:rgba(29,233,182,0.12);border-color:rgba(29,233,182,0.35);color:#1de9b6;}
+.diet-pill.dp-nv.sel   {background:rgba(255,107,43,0.12);border-color:rgba(255,107,43,0.38);color:#ff6b2b;}
+.diet-pill.dp-vegan.sel{background:rgba(124,77,255,0.12);border-color:rgba(124,77,255,0.38);color:#a88bff;}
+#diet_pref_hidden{display:none;}
+
+/* Panel footer */
+.panel-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:22px;padding-top:18px;border-top:1px solid var(--border);
+  flex-wrap:wrap;gap:12px;
+}
+.panel-foot-hint{font-size:0.75rem;color:var(--muted2);}
+
+.btn-save{
+  padding:11px 28px;border:none;border-radius:12px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:0.84rem;font-weight:700;
+  color:#fff;cursor:pointer;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#7c4dff 0%,#e040d0 50%,#ff6b2b 100%);
+  background-size:200%;background-position:0%;
+  transition:background-position 0.4s,transform 0.2s,box-shadow 0.3s;
+  box-shadow:0 4px 16px rgba(124,77,255,0.35);
+}
+.btn-save:hover{background-position:100%;transform:translateY(-1px);box-shadow:0 6px 22px rgba(224,64,208,0.45);}
+.btn-save:active{transform:translateY(0);}
+.btn-save:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+.btn-danger{
+  padding:11px 24px;border:1px solid rgba(255,77,109,0.35);border-radius:12px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:0.84rem;font-weight:600;
+  color:var(--rose);cursor:pointer;background:rgba(255,77,109,0.06);
+  transition:all 0.22s;
+}
+.btn-danger:hover{background:rgba(255,77,109,0.14);border-color:rgba(255,77,109,0.55);}
+
+.btn-secondary{
+  padding:11px 20px;border:1px solid var(--border);border-radius:12px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:0.84rem;font-weight:500;
+  color:var(--muted);cursor:pointer;background:transparent;
+  transition:all 0.22s;
+}
+.btn-secondary:hover{border-color:var(--border-hover);color:var(--text);}
+
+/* Inline message */
+.field-msg{
+  font-size:0.72rem;font-weight:500;margin-top:5px;
+  display:none;
+}
+.field-msg.show{display:block;}
+.field-msg.ok{color:#1de9b6;}
+.field-msg.err{color:var(--rose);}
+
+/* ===== DANGER ZONE (tab 2) ===== */
+.danger-zone{
+  background:rgba(255,77,109,0.04);
+  border:1px solid rgba(255,77,109,0.2);border-radius:20px;
+  padding:24px 28px;margin-bottom:20px;
+  opacity:0;transform:translateY(16px);
+  animation:fadeUp 0.6s 0.1s ease forwards;
+}
+.dz-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.dz-icon{width:38px;height:38px;border-radius:12px;background:rgba(255,77,109,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.dz-head-text h3{font-size:0.95rem;font-weight:600;color:var(--rose);}
+.dz-head-text p{font-size:0.76rem;color:var(--muted);}
+.dz-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;}
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;top:24px;right:-420px;
+  min-width:290px;padding:14px 18px;border-radius:16px;
+  background:var(--card-bg);border:1px solid var(--border);
+  font-size:0.82rem;font-weight:600;color:var(--text);
+  box-shadow:0 10px 40px rgba(0,0,0,0.5);
+  transition:right 0.5s cubic-bezier(0.22,1,0.36,1);z-index:9999;
+  display:flex;align-items:center;gap:10px;
+}
+.toast.show{right:24px;}
+.toast.success{border-left:3px solid #1de9b6;}
+.toast.error{border-left:3px solid var(--rose);}
+
+/* Shake animation */
+.shake{animation:shakeFx 0.4s cubic-bezier(.36,.07,.19,.97);}
+@keyframes shakeFx{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+
+@media(max-width:860px){
+  .sidebar{display:none;}
+  .main{margin-left:0;}
+  .form-grid{grid-template-columns:1fr;}
+  .profile-stats{display:none;}
+}
+
+/* ========================================
+   MOBILE RESPONSIVE
+======================================== */
+@media (max-width: 900px) {
+  .sidebar { display:none !important; }
+  .main    { margin-left:0 !important; }
+  .layout  { flex-direction:column !important; padding:16px !important; gap:16px !important; }
+  .left,.right,.left-panel,.right-panel,.left-form { width:100% !important; min-height:unset !important; }
+  .two-col,.analytics-grid,.form-grid { grid-template-columns:1fr !important; }
+  .stats-grid,.analytics-stats,.summary-strip,.revenue-highlight { grid-template-columns:1fr 1fr !important; }
+  .hero-inner { flex-direction:column !important; gap:32px !important; }
+  .hero-visual { width:100% !important; }
+  .about-cards,.features-grid { grid-template-columns:1fr !important; }
+  .stats-inner { grid-template-columns:1fr 1fr !important; }
+}
+@media (max-width: 600px) {
+  body { overflow-x:hidden; }
+  .topbar { padding:0 16px !important; height:56px !important; }
+  .topbar h1,.topbar-title { font-size:1rem !important; }
+  .topbar-left p,.topbar-pill { display:none !important; }
+  .sidebar { display:none !important; }
+  .main { margin-left:0 !important; }
+  .content { padding:14px !important; }
+  .section { padding:48px 20px !important; }
+  .layout { padding:12px !important; }
+  nav { padding:0 16px !important; }
+  .nav-links { display:none !important; }
+  .stats-grid,.analytics-stats,.summary-strip,.revenue-highlight,
+  .two-col,.analytics-grid,.form-grid,.notif-form-grid,
+  .social-row,.social-btns { grid-template-columns:1fr !important; }
+  .food-grid { grid-template-columns:repeat(2,1fr) !important; gap:10px !important; }
+  .card,.form-card,.chart-card,.order-card,.summary-card,.stat-card { border-radius:14px !important; padding:14px !important; }
+  .hero-title,.headline { font-size:1.9rem !important; }
+  .hero-inner { flex-direction:column !important; }
+  .hero-visual { display:none; }
+  #home > div { padding:80px 20px 40px !important; }
+  .profile-hero { padding:16px !important; flex-wrap:wrap !important; }
+  .profile-stats { display:none !important; }
+  .tabs { flex-wrap:wrap !important; }
+  .tab-btn { flex:1 1 40% !important; font-size:0.72rem !important; padding:8px !important; }
+  .steps-row { grid-template-columns:repeat(2,1fr) !important; gap:14px !important; }
+  .steps-line-track { display:none !important; }
+  .cart-panel { width:100vw !important; right:0 !important; }
+  .main.cart-open { margin-right:0 !important; }
+  .notif-panel { width:calc(100vw - 20px) !important; right:10px !important; left:10px !important; }
+  .btn-save,.btn-submit,.btn-recommend { width:100% !important; }
+  .panel-foot { flex-direction:column !important; align-items:stretch !important; }
+  .panel-foot .btn-save,.panel-foot .btn-secondary { width:100% !important; }
+  .right-panel { padding:20px 16px !important; }
+  .left-panel { display:none !important; }
+  .form-wrap { padding:0 !important; }
+  .form-full { grid-column:1 !important; }
+  .table-wrap { overflow-x:auto !important; }
+  table { min-width:480px; }
+  .search-bar { flex-wrap:wrap !important; }
+  .search-bar input { flex:1 1 100% !important; }
+  .btn-track { width:100% !important; }
+  .mood-pills,.diet-pills,.diet-tags,.tag-row,.dz-actions { flex-wrap:wrap !important; gap:8px !important; }
+  .section-title { font-size:1.5rem !important; }
+  .sec-head h2,.section-header h2 { font-size:1rem !important; }
+  .chat-window { width:100vw !important; right:0 !important; border-radius:20px 20px 0 0 !important; }
+  .chat-fab { bottom:14px !important; right:14px !important; }
+  .stat-num,.an-stat-num,.scard-num { font-size:1.3rem !important; }
+  .oc-top,.oc-bottom { flex-direction:column !important; align-items:flex-start !important; gap:8px !important; }
+  .oc-meta { flex-wrap:wrap !important; gap:6px !important; }
+  .hero-text h2 { font-size:1.8rem !important; }
+  .hero-text p,.hero-sub { font-size:0.85rem !important; }
+  .rest-row { gap:8px !important; }
+  .rest-chip { padding:8px 12px !important; font-size:0.78rem !important; }
+  .form-grid { grid-template-columns:1fr !important; }
+  .notif-form-grid { grid-template-columns:1fr !important; }
+  .summary-strip { grid-template-columns:1fr 1fr !important; }
+  .revenue-highlight { grid-template-columns:1fr !important; }
+  .an-stat { padding:12px 14px !important; }
+}
+
+
+/* ── Hamburger menu ── */
+.hamburger {
+  display:none;width:38px;height:38px;border-radius:10px;
+  border:1px solid var(--border);background:rgba(255,255,255,0.04);
+  align-items:center;justify-content:center;cursor:pointer;
+  font-size:18px;flex-shrink:0;transition:all 0.2s;
+}
+.hamburger:hover{border-color:var(--border-hover);background:rgba(124,77,255,0.1);}
+@media(max-width:900px){.hamburger{display:flex;}}
+
+/* Mobile sidebar overlay */
+.sidebar-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
+  z-index:99;
+}
+.sidebar-overlay.show{display:block;}
+.sidebar.mobile-open{
+  display:flex !important;
+  position:fixed;left:0;top:0;z-index:100;
+  transform:translateX(0) !important;
+  animation:slideInSidebar 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes slideInSidebar{from{transform:translateX(-100%);}to{transform:translateX(0);}}
+
+</style>
+</head>
+<body>
+
+<div class="aurora">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<!-- ===== SIDEBAR ===== -->
+<div class="sidebar">
+  <div class="sidebar-head">
+    <div class="s-logo">🍽</div>
+    <div>
+      <div class="s-brand">FoodLens AI</div>
+      <span class="s-sub">User Dashboard</span>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <span class="nav-section-label">Explore</span>
+    <a href="user-dashboard.html" class="nav-btn">
+      <div class="nav-icon">🏠</div> Home
+    </a>
+    <a href="user-dashboard.html" class="nav-btn">
+      <div class="nav-icon">🍽</div> Restaurants
+    </a>
+    <a href="#" class="nav-btn">
+      <div class="nav-icon">📋</div> My Orders
+    </a>
+
+    <span class="nav-section-label">Account</span>
+    <a href="profile.html" class="nav-btn active">
+      <div class="nav-icon">👤</div> Profile
+    </a>
+    <button class="nav-btn danger" onclick="logout()">
+      <div class="nav-icon">🔐</div> Logout
+    </button>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-avatar" id="sidebarAvatar">U</div>
+    <div class="user-info">
+      <strong id="sidebarName">Loading...</strong>
+      <span id="sidebarDiet">Member</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+  <div class="topbar">
+    <h1>My Profile</h1>
+    <button class="hamburger" onclick="openMobileSidebar()" aria-label="Menu">☰</button>
+      <div class="topbar-right">
+      <div class="topbar-pill">
+        <span class="status-dot"></span> Active session
+      </div>
+      <div class="topbar-pill">🕐 <span id="clock">--:--</span></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Profile hero -->
+    <div class="profile-hero">
+      <div class="avatar-wrap">
+        <div class="avatar-circle" id="avatarCircle">
+          <span id="avatarLetter">U</span>
+          <div class="avatar-edit-overlay">✏️</div>
+        </div>
+        <div class="avatar-online"></div>
+      </div>
+      <div class="profile-info">
+        <h2 id="heroName">Loading...</h2>
+        <p id="heroEmail">Loading...</p>
+        <div class="profile-badges">
+          <span class="badge badge-diet" id="heroDiet">Any Diet</span>
+          <span class="badge badge-member">🌟 Member</span>
+          <span class="badge badge-orders" id="heroOrders">0 Orders</span>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="pstat">
+          <div class="pstat-num" style="color:#f5c842;" id="statOrders">0</div>
+          <div class="pstat-label">Orders</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('info',this)">
+        <span class="tab-icon">👤</span> Personal Info
+      </button>
+      <button class="tab-btn" onclick="switchTab('security',this)">
+        <span class="tab-icon">🔒</span> Security
+      </button>
+      <button class="tab-btn" onclick="switchTab('preferences',this)">
+        <span class="tab-icon">🍽</span> Preferences
+      </button>
+      <button class="tab-btn" onclick="switchTab('danger',this)">
+        <span class="tab-icon">⚠️</span> Account
+      </button>
+    </div>
+
+    <!-- ===== TAB: PERSONAL INFO ===== -->
+    <div class="tab-panel active" id="tab-info">
+
+      <div class="form-panel">
+        <div class="panel-head">
+          <div class="panel-icon pi-v">👤</div>
+          <div class="panel-head-text">
+            <h3>Personal Information</h3>
+            <p>Update your name and email address</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Full name</label>
+            <div class="input-wrap">
+              <span class="field-icon">✏️</span>
+              <input type="text" id="inp-name" placeholder="Your full name">
+            </div>
+            <span class="field-msg" id="msg-name"></span>
+          </div>
+          <div class="field">
+            <label>Email address</label>
+            <div class="input-wrap">
+              <span class="field-icon">✉️</span>
+              <input type="email" id="inp-email" placeholder="you@example.com">
+            </div>
+            <span class="field-msg" id="msg-email"></span>
+          </div>
+        </div>
+
+        <div class="panel-foot">
+          <span class="panel-foot-hint">Changes take effect immediately after saving.</span>
+          <div style="display:flex;gap:10px;">
+            <button class="btn-secondary" onclick="loadUserData()">Reset</button>
+            <button class="btn-save" id="btn-save-info" onclick="saveInfo()">Save changes →</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== TAB: SECURITY ===== -->
+    <div class="tab-panel" id="tab-security">
+
+      <div class="form-panel">
+        <div class="panel-head">
+          <div class="panel-icon pi-o">🔒</div>
+          <div class="panel-head-text">
+            <h3>Change Password</h3>
+            <p>Use a strong password with letters, numbers and symbols</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="field form-full">
+            <label>Current password</label>
+            <div class="input-wrap">
+              <span class="field-icon">🔑</span>
+              <input type="password" id="inp-current-pw" placeholder="Enter current password">
+              <button class="pw-toggle" onclick="togglePw('inp-current-pw',this)" tabindex="-1">👁</button>
+            </div>
+            <span class="field-msg" id="msg-current-pw"></span>
+          </div>
+
+          <div class="field">
+            <label>New password</label>
+            <div class="input-wrap">
+              <span class="field-icon">🔒</span>
+              <input type="password" id="inp-new-pw" placeholder="Min. 8 characters" oninput="checkStrength(this.value)">
+              <button class="pw-toggle" onclick="togglePw('inp-new-pw',this)" tabindex="-1">👁</button>
+            </div>
+            <div class="pw-strength-wrap">
+              <div class="pw-strength-bar">
+                <div class="pw-strength-fill" id="pw-strength-fill"></div>
+              </div>
+              <span class="pw-strength-label" id="pw-strength-label">Enter a password</span>
+            </div>
+            <span class="field-msg" id="msg-new-pw"></span>
+          </div>
+
+          <div class="field">
+            <label>Confirm new password</label>
+            <div class="input-wrap">
+              <span class="field-icon">✅</span>
+              <input type="password" id="inp-confirm-pw" placeholder="Repeat new password" oninput="checkMatch()">
+              <button class="pw-toggle" onclick="togglePw('inp-confirm-pw',this)" tabindex="-1">👁</button>
+            </div>
+            <span class="field-msg" id="msg-confirm-pw"></span>
+          </div>
+        </div>
+
+        <div class="panel-foot">
+          <span class="panel-foot-hint">You'll be asked to log in again after changing your password.</span>
+          <div style="display:flex;gap:10px;">
+            <button class="btn-secondary" onclick="clearPwFields()">Clear</button>
+            <button class="btn-save" id="btn-save-pw" onclick="savePassword()">Update password →</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== TAB: PREFERENCES ===== -->
+    <div class="tab-panel" id="tab-preferences">
+
+      <div class="form-panel">
+        <div class="panel-head">
+          <div class="panel-icon pi-t">🍽</div>
+          <div class="panel-head-text">
+            <h3>Diet Preference</h3>
+            <p>We use this to personalise your food recommendations</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Select your diet type</label>
+          <div class="diet-pills" id="dietPills">
+            <button type="button" class="diet-pill dp-any" data-value="">⭐ Any</button>
+            <button type="button" class="diet-pill dp-veg" data-value="Veg">🥦 Vegetarian</button>
+            <button type="button" class="diet-pill dp-nv" data-value="Non-Veg">🍗 Non-Veg</button>
+            <button type="button" class="diet-pill dp-vegan" data-value="Vegan">🌱 Vegan</button>
+          </div>
+          <input type="hidden" id="diet_pref_hidden">
+        </div>
+
+        <div class="panel-foot">
+          <span class="panel-foot-hint">Your AI recommendations update instantly with this setting.</span>
+          <button class="btn-save" id="btn-save-diet" onclick="saveDiet()">Save preference →</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== TAB: ACCOUNT / DANGER ZONE ===== -->
+    <div class="tab-panel" id="tab-danger">
+
+      <!-- Account info -->
+      <div class="form-panel">
+        <div class="panel-head">
+          <div class="panel-icon pi-t">📊</div>
+          <div class="panel-head-text">
+            <h3>Account Summary</h3>
+            <p>Your FoodLens AI account details</p>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div style="padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;">
+            <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">User ID</div>
+            <div style="font-family:'Fraunces',serif;font-size:1.1rem;color:var(--text);" id="sum-id">—</div>
+          </div>
+          <div style="padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;">
+            <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Account role</div>
+            <div style="font-family:'Fraunces',serif;font-size:1.1rem;color:#1de9b6;">Member</div>
+          </div>
+          <div style="padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;">
+            <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Diet preference</div>
+            <div style="font-family:'Fraunces',serif;font-size:1.1rem;color:#f5c842;" id="sum-diet">—</div>
+          </div>
+          <div style="padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;">
+            <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Total orders</div>
+            <div style="font-family:'Fraunces',serif;font-size:1.1rem;color:#a88bff;" id="sum-orders">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="danger-zone">
+        <div class="dz-head">
+          <div class="dz-icon">⚠️</div>
+          <div class="dz-head-text">
+            <h3>Danger Zone</h3>
+            <p>These actions are permanent and cannot be undone</p>
+          </div>
+        </div>
+        <p style="font-size:0.82rem;color:var(--muted);line-height:1.7;">
+          Deleting your account will permanently remove all your data, order history, and preferences from FoodLens AI. This action cannot be reversed.
+        </p>
+        <div class="dz-actions">
+          <button class="btn-secondary" onclick="logout()">🔐 Sign out</button>
+          <button class="btn-danger" onclick="confirmDelete()">🗑 Delete my account</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<div class="toast" id="toast"><span id="toastMsg">Done!</span></div>
+
+<script>
+const API = "";
+const token = localStorage.getItem("token");
+if (!token) location.href = "login.html";
+
+let currentUser = {};
+
+/* ===== CLOCK ===== */
+function updateClock() {
+  const now = new Date();
+  document.getElementById("clock").textContent =
+    now.getHours().toString().padStart(2,"0") + ":" +
+    now.getMinutes().toString().padStart(2,"0");
+}
+updateClock(); setInterval(updateClock, 10000);
+
+/* ===== LOAD USER DATA ===== */
+async function loadUserData() {
+  try {
+    const res  = await fetch(API + "/api/profile", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    const u = data.user || data;
+    currentUser = u;
+
+    // Hero
+    const letter = (u.name || "U")[0].toUpperCase();
+    document.getElementById("avatarLetter").textContent = letter;
+    document.getElementById("sidebarAvatar").textContent = letter;
+    document.getElementById("heroName").textContent    = u.name || "—";
+    document.getElementById("heroEmail").textContent   = u.email || "—";
+    document.getElementById("sidebarName").textContent = u.name || "—";
+    document.getElementById("sidebarDiet").textContent = u.diet_pref || "Member";
+
+    const dietLabel = u.diet_pref || "Any Diet";
+    document.getElementById("heroDiet").textContent  = dietLabel;
+    document.getElementById("sum-diet").textContent  = dietLabel;
+    document.getElementById("sum-id").textContent    = "#" + (u.id || "—");
+
+    const orders = u.order_count || u.orders || 0;
+    document.getElementById("heroOrders").textContent = orders + " Orders";
+    document.getElementById("statOrders").textContent = orders;
+    document.getElementById("sum-orders").textContent  = orders;
+
+    // Fill inputs
+    document.getElementById("inp-name").value  = u.name  || "";
+    document.getElementById("inp-email").value = u.email || "";
+
+    // Set diet pill
+    setDietPill(u.diet_pref || "");
+
+  } catch (err) {
+    console.error("Load user error:", err);
+    showToast("Failed to load profile", "error");
+  }
+}
+
+/* ===== TABS ===== */
+function switchTab(id, btn) {
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-" + id).classList.add("active");
+  btn.classList.add("active");
+}
+
+/* ===== DIET PILLS ===== */
+const pillMap = { "": "dp-any", "Veg": "dp-veg", "Non-Veg": "dp-nv", "Vegan": "dp-vegan" };
+
+function setDietPill(value) {
+  document.querySelectorAll(".diet-pill").forEach(p => {
+    p.classList.remove("sel");
+    if (p.dataset.value === value) {
+      p.classList.add("sel");
+      const cls = pillMap[value] || "dp-any";
+      p.classList.add(cls);
+    }
+  });
+  document.getElementById("diet_pref_hidden").value = value;
+}
+
+document.querySelectorAll(".diet-pill").forEach(pill => {
+  pill.addEventListener("click", () => {
+    document.querySelectorAll(".diet-pill").forEach(p => p.classList.remove("sel"));
+    pill.classList.add("sel");
+    document.getElementById("diet_pref_hidden").value = pill.dataset.value;
+  });
+});
+
+/* ===== PASSWORD STRENGTH ===== */
+function checkStrength(pw) {
+  const fill  = document.getElementById("pw-strength-fill");
+  const label = document.getElementById("pw-strength-label");
+  let score = 0;
+  if (pw.length >= 8)             score++;
+  if (/[A-Z]/.test(pw))          score++;
+  if (/[0-9]/.test(pw))          score++;
+  if (/[^A-Za-z0-9]/.test(pw))   score++;
+
+  const levels = [
+    { pct:"0%",   color:"transparent", text:"Enter a password" },
+    { pct:"25%",  color:"#ff4d6d",     text:"Weak" },
+    { pct:"50%",  color:"#f5c842",     text:"Fair" },
+    { pct:"75%",  color:"#ff6b2b",     text:"Good" },
+    { pct:"100%", color:"#1de9b6",     text:"Strong ✓" },
+  ];
+  const lvl = pw.length === 0 ? levels[0] : levels[score];
+  fill.style.width      = lvl.pct;
+  fill.style.background = lvl.color;
+  label.textContent     = pw.length === 0 ? "Enter a password" : lvl.text;
+  label.style.color     = lvl.color;
+}
+
+function checkMatch() {
+  const np = document.getElementById("inp-new-pw").value;
+  const cp = document.getElementById("inp-confirm-pw").value;
+  const msg = document.getElementById("msg-confirm-pw");
+  if (!cp) { msg.className = "field-msg"; return; }
+  if (np === cp) {
+    showFieldMsg("msg-confirm-pw", "✓ Passwords match", "ok");
+    document.getElementById("inp-confirm-pw").className = "success-input";
+  } else {
+    showFieldMsg("msg-confirm-pw", "Passwords do not match", "err");
+    document.getElementById("inp-confirm-pw").className = "error-input";
+  }
+}
+
+/* ===== PASSWORD TOGGLE ===== */
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === "password" ? "text" : "password";
+  btn.textContent = inp.type === "password" ? "👁" : "🙈";
+}
+
+function clearPwFields() {
+  ["inp-current-pw","inp-new-pw","inp-confirm-pw"].forEach(id => {
+    document.getElementById(id).value = "";
+    document.getElementById(id).className = "";
+  });
+  document.getElementById("pw-strength-fill").style.width = "0%";
+  document.getElementById("pw-strength-label").textContent = "Enter a password";
+  ["msg-current-pw","msg-new-pw","msg-confirm-pw"].forEach(id => {
+    document.getElementById(id).className = "field-msg";
+  });
+}
+
+/* ===== FIELD MESSAGES ===== */
+function showFieldMsg(id, text, type) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = "field-msg show " + type;
+}
+
+/* ===== SAVE: PERSONAL INFO ===== */
+async function saveInfo() {
+  const name  = document.getElementById("inp-name").value.trim();
+  const email = document.getElementById("inp-email").value.trim();
+  const btn   = document.getElementById("btn-save-info");
+
+  if (!name)  { showFieldMsg("msg-name",  "Name is required", "err"); return; }
+  if (!email) { showFieldMsg("msg-email", "Email is required", "err"); return; }
+  if (!/\S+@\S+\.\S+/.test(email)) { showFieldMsg("msg-email", "Enter a valid email", "err"); return; }
+
+  btn.disabled = true; btn.textContent = "Saving...";
+
+  try {
+    const res  = await fetch(API + "/api/profile/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({ name, email })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    showFieldMsg("msg-name",  "✓ Saved", "ok");
+    showFieldMsg("msg-email", "✓ Saved", "ok");
+
+    // Update hero
+    document.getElementById("heroName").textContent    = name;
+    document.getElementById("heroEmail").textContent   = email;
+    document.getElementById("sidebarName").textContent = name;
+    document.getElementById("avatarLetter").textContent = name[0].toUpperCase();
+    document.getElementById("sidebarAvatar").textContent = name[0].toUpperCase();
+
+    showToast("Profile updated successfully! ✓", "success");
+
+  } catch (err) {
+    showFieldMsg("msg-name", err.message || "Save failed", "err");
+    showToast(err.message || "Failed to update profile", "error");
+  } finally {
+    btn.disabled = false; btn.textContent = "Save changes →";
+  }
+}
+
+/* ===== SAVE: PASSWORD ===== */
+async function savePassword() {
+  const current = document.getElementById("inp-current-pw").value;
+  const newPw   = document.getElementById("inp-new-pw").value;
+  const confirm = document.getElementById("inp-confirm-pw").value;
+  const btn     = document.getElementById("btn-save-pw");
+
+  if (!current) { showFieldMsg("msg-current-pw", "Enter your current password", "err"); return; }
+  if (newPw.length < 8) { showFieldMsg("msg-new-pw", "Password must be at least 8 characters", "err"); return; }
+  if (newPw !== confirm) { showFieldMsg("msg-confirm-pw", "Passwords do not match", "err"); return; }
+
+  btn.disabled = true; btn.textContent = "Updating...";
+
+  try {
+    const res  = await fetch(API + "/api/profile/change-password", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({ currentPassword: current, newPassword: newPw })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    clearPwFields();
+    showToast("Password changed! Please log in again.", "success");
+    setTimeout(() => { localStorage.clear(); location.href = "login.html"; }, 2000);
+
+  } catch (err) {
+    showFieldMsg("msg-current-pw", err.message || "Incorrect current password", "err");
+    document.getElementById("inp-current-pw").classList.add("error-input");
+    const panel = document.querySelector("#tab-security .form-panel");
+    panel.classList.add("shake");
+    setTimeout(() => panel.classList.remove("shake"), 500);
+    showToast(err.message || "Password update failed", "error");
+  } finally {
+    btn.disabled = false; btn.textContent = "Update password →";
+  }
+}
+
+/* ===== SAVE: DIET ===== */
+async function saveDiet() {
+  const diet = document.getElementById("diet_pref_hidden").value;
+  const btn  = document.getElementById("btn-save-diet");
+  btn.disabled = true; btn.textContent = "Saving...";
+
+  try {
+    const res  = await fetch(API + "/api/profile/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({ diet_pref: diet })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    const label = diet || "Any Diet";
+    document.getElementById("heroDiet").textContent  = label;
+    document.getElementById("sum-diet").textContent  = label;
+    document.getElementById("sidebarDiet").textContent = label;
+    showToast("Diet preference saved! ✓", "success");
+
+  } catch (err) {
+    showToast(err.message || "Failed to save preference", "error");
+  } finally {
+    btn.disabled = false; btn.textContent = "Save preference →";
+  }
+}
+
+/* ===== DELETE ACCOUNT ===== */
+function confirmDelete() {
+  const confirmed = window.confirm(
+    "⚠️ Are you sure?\n\nThis will permanently delete your account and all data.\nThis cannot be undone."
+  );
+  if (!confirmed) return;
+
+  fetch(API + "/api/profile/delete", {
+    method: "DELETE",
+    headers: { Authorization: "Bearer " + token }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success !== false) {
+      localStorage.clear();
+      showToast("Account deleted. Goodbye! 👋", "success");
+      setTimeout(() => location.href = "register.html", 1500);
+    } else {
+      showToast(data.message || "Delete failed", "error");
+    }
+  })
+  .catch(() => showToast("Server error. Try again.", "error"));
+}
+
+/* ===== TOAST ===== */
+function showToast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  document.getElementById("toastMsg").textContent = msg;
+  t.className = "toast " + type + " show";
+  setTimeout(() => t.classList.remove("show"), 3500);
+}
+
+/* ===== LOGOUT ===== */
+
+/* ===== MOBILE SIDEBAR ===== */
+function openMobileSidebar() {
+  var sb = document.querySelector('.sidebar');
+  var ov = document.getElementById('sidebarOverlay');
+  if (sb) sb.style.cssText = 'display:flex !important; position:fixed; left:0; top:0; z-index:1000; height:100vh; animation:slideInSidebar 0.3s ease;';
+  if (ov) ov.classList.add('show');
+}
+function closeMobileSidebar() {
+  var sb = document.querySelector('.sidebar');
+  var ov = document.getElementById('sidebarOverlay');
+  if (sb) sb.style.cssText = '';
+  if (ov) ov.classList.remove('show');
+}
+
+function logout() { localStorage.clear(); location.href = "login.html"; }
+
+/* ===== INIT ===== */
+loadUserData();
+</script>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+</body>
+</html>

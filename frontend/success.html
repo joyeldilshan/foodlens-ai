@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Payment Success</title>
+</head>
+<body style="background:#0f172a;color:white;text-align:center;padding-top:120px;font-family:Poppins;">
+<h1>🎉 Payment Successful!</h1>
+<p>Your order has been placed successfully.</p>
+<a href="auth.html" style="color:#38bdf8;">Back to Login</a>
+<script>
+const params = new URLSearchParams(window.location.search);
+const sessionId = params.get("session_id");
+
+if(sessionId){
+  fetch("http://localhost:5000/api/payment/verify/" + sessionId)
+    .then(res => res.json())
+    .then(data => {
+      if(data.success){
+        console.log("Order saved successfully");
+      }
+    });
+}
+</script>
+</body>
+</html>

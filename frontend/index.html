@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodLens AI | Smart Food Recommendations</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --deep:#08060f; --card-bg:#110e1c; --surface:#160f26;
+  --border:rgba(255,255,255,0.08); --border-hover:rgba(255,255,255,0.2);
+  --text:#f2eeff; --muted:#8b82a8; --muted2:#5c5474;
+  --orange:#ff6b2b; --pink:#e040d0; --gold:#f5c842; --teal:#1de9b6; --violet:#7c4dff;
+}
+html { scroll-behavior:smooth; }
+body { background:var(--deep); font-family:'Plus Jakarta Sans',sans-serif; color:var(--text); overflow-x:hidden; }
+
+/* AURORA */
+.aurora { position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none; }
+.aurora-orb { position:absolute;border-radius:50%;filter:blur(100px);opacity:0;will-change:transform; }
+.orb1 { width:700px;height:700px;background:radial-gradient(circle,#7c4dff55,#e040d022);top:-250px;left:-200px;animation:orbFadeIn 1.5s 0.3s forwards; }
+.orb2 { width:600px;height:600px;background:radial-gradient(circle,#ff6b2b44,#f5c84222);bottom:-200px;right:-150px;animation:orbFadeIn 1.5s 0.6s forwards; }
+.orb3 { width:400px;height:400px;background:radial-gradient(circle,#1de9b633,#7c4dff22);top:40%;left:40%;animation:orbFadeIn 1.5s 1s forwards; }
+@keyframes orbFadeIn { to { opacity:1; } }
+.grid-overlay { position:fixed;inset:0;z-index:0;pointer-events:none;will-change:transform;background-image:linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px);background-size:60px 60px; }
+
+/* NAVBAR */
+nav { position:fixed;top:0;width:100%;z-index:1000;padding:0 60px;display:flex;justify-content:space-between;align-items:center;height:70px;background:rgba(8,6,15,0.7);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);transition:background 0.3s,box-shadow 0.3s; }
+nav.scrolled { background:rgba(8,6,15,0.92);box-shadow:0 4px 30px rgba(0,0,0,0.5); }
+.nav-brand { display:flex;align-items:center;gap:10px;text-decoration:none; }
+.nav-logo { width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#7c4dff,#e040d0);display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 0 16px rgba(124,77,255,0.4);animation:logoPulse 3s ease-in-out infinite; }
+@keyframes logoPulse { 0%,100%{box-shadow:0 0 16px rgba(124,77,255,0.4);}50%{box-shadow:0 0 28px rgba(224,64,208,0.6);} }
+.nav-name { font-family:'Fraunces',serif;font-size:1.15rem;font-weight:700;background:linear-gradient(90deg,#c9b8ff,#f0a0e0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.nav-links { display:flex;align-items:center;gap:32px; }
+.nav-links a { font-size:0.83rem;font-weight:500;letter-spacing:0.04em;color:var(--muted);text-decoration:none;transition:color 0.2s;position:relative; }
+.nav-links a::after { content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--violet);transform:scaleX(0);transition:transform 0.25s; }
+.nav-links a:hover { color:var(--text); } .nav-links a:hover::after { transform:scaleX(1); }
+.nav-buttons { display:flex;align-items:center;gap:10px; }
+.btn-nav-ghost { padding:8px 20px;border:1px solid var(--border);border-radius:50px;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.78rem;font-weight:500;color:var(--muted);text-decoration:none;transition:all 0.22s;letter-spacing:0.06em; }
+.btn-nav-ghost:hover { border-color:var(--border-hover);color:var(--text); }
+.btn-nav-fill { padding:8px 22px;border-radius:50px;border:none;background:linear-gradient(135deg,#7c4dff,#e040d0);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.78rem;font-weight:600;color:#fff;text-decoration:none;transition:all 0.25s;letter-spacing:0.06em;box-shadow:0 4px 14px rgba(124,77,255,0.35); }
+.btn-nav-fill:hover { transform:translateY(-1px);box-shadow:0 6px 20px rgba(224,64,208,0.45); }
+
+/* HERO */
+#home { min-height:100vh;position:relative;z-index:1;overflow:hidden; }
+.hero-scene { min-height:100vh;display:flex;align-items:center;justify-content:center;padding:120px 60px 80px;position:relative; }
+.hero-inner { max-width:1100px;width:100%;display:flex;align-items:center;gap:40px;position:relative;z-index:5; }
+
+/* Deco */
+.deco-ring { position:absolute;border-radius:50%;border:1px solid;pointer-events:none;will-change:transform;z-index:1; }
+.ring1 { width:380px;height:380px;border-color:rgba(124,77,255,0.1);top:5%;left:-10%; }
+.ring2 { width:200px;height:200px;border-color:rgba(29,233,182,0.13);bottom:8%;right:3%; }
+.ring3 { width:110px;height:110px;border-color:rgba(255,107,43,0.18);top:28%;right:10%; }
+.food-particle { position:absolute;font-size:1.8rem;pointer-events:none;will-change:transform;z-index:2;filter:drop-shadow(0 0 12px rgba(124,77,255,0.5)); }
+.fp1{top:16%;left:6%;} .fp2{top:68%;left:4%;font-size:1.4rem;} .fp3{top:22%;right:5%;font-size:1.3rem;} .fp4{top:72%;right:7%;} .fp5{top:48%;left:2%;font-size:1.2rem;}
+.accent-line { position:absolute;width:1px;pointer-events:none;will-change:transform;z-index:1; }
+.al1 { height:140px;background:linear-gradient(to bottom,transparent,rgba(124,77,255,0.4),transparent);top:22%;right:18%; }
+.al2 { height:90px;background:linear-gradient(to bottom,transparent,rgba(29,233,182,0.3),transparent);bottom:22%;left:12%; }
+
+/* Hero text */
+.hero-text { flex:1;opacity:0;transform:translateY(40px);will-change:transform;animation:fadeUp 0.9s 0.3s cubic-bezier(0.22,1,0.36,1) forwards; }
+@keyframes fadeUp { to { opacity:1;transform:translateY(0); } }
+.hero-badge { display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:50px;border:1px solid rgba(29,233,182,0.25);background:rgba(29,233,182,0.07);font-size:0.72rem;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#1de9b6;margin-bottom:1.5rem; }
+.hero-badge span { width:6px;height:6px;border-radius:50%;background:#1de9b6;animation:badgePulse 2s ease-in-out infinite; }
+@keyframes badgePulse { 0%,100%{opacity:1;}50%{opacity:0.3;} }
+.hero-title { font-family:'Fraunces',serif;font-size:clamp(3rem,5vw,5rem);font-weight:700;line-height:1.05;letter-spacing:-0.02em;margin-bottom:1.5rem; }
+.hero-title .t1 { display:block;background:linear-gradient(90deg,#fff,#d0c0ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.hero-title .t2 { display:block;font-style:italic;background:linear-gradient(90deg,#ff6b2b,#f5c842,#1de9b6);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 5s ease-in-out infinite; }
+@keyframes shimmer { 0%{background-position:0%;}50%{background-position:100%;}100%{background-position:0%;} }
+.hero-sub { font-size:1rem;color:var(--muted);line-height:1.75;max-width:480px;margin-bottom:2.5rem; }
+.mood-box { display:flex;flex-direction:column;gap:14px;max-width:460px; }
+.mood-label { font-size:0.68rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);font-weight:600; }
+.mood-pills { display:flex;gap:10px;flex-wrap:wrap; }
+.mpill { padding:10px 18px;font-size:0.82rem;font-weight:500;border-radius:50px;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.22s; }
+.mpill:hover { border-color:var(--border-hover);color:var(--text); }
+.mpill.active { background:rgba(124,77,255,0.15);border-color:rgba(124,77,255,0.5);color:#c9b8ff; }
+#mood { display:none; }
+.btn-recommend { padding:14px 32px;border:none;border-radius:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.9rem;font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(135deg,#7c4dff 0%,#e040d0 50%,#ff6b2b 100%);background-size:200%;background-position:0%;transition:background-position 0.5s,transform 0.2s,box-shadow 0.3s;box-shadow:0 4px 20px rgba(124,77,255,0.4);align-self:flex-start;position:relative;overflow:hidden; }
+.btn-recommend:hover { background-position:100%;transform:translateY(-2px);box-shadow:0 8px 30px rgba(224,64,208,0.5); }
+.btn-recommend .ripple { position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);transform:scale(0);animation:rippleAnim 0.6s linear;pointer-events:none; }
+@keyframes rippleAnim { to { transform:scale(4);opacity:0; } }
+#aiResult { padding:18px 20px;background:rgba(124,77,255,0.1);border:1px solid rgba(124,77,255,0.25);border-radius:16px;font-size:0.9rem;line-height:1.7;color:var(--text);opacity:0;transform:translateY(10px);transition:all 0.4s;display:none; }
+#aiResult.show { opacity:1;transform:translateY(0);display:block; }
+#aiResult strong { color:var(--gold); }
+
+/* 3D CANVAS */
+.hero-3d { flex-shrink:0;width:480px;height:480px;position:relative;opacity:0;animation:fadeIn3d 1s 0.6s cubic-bezier(0.22,1,0.36,1) forwards;will-change:transform; }
+@keyframes fadeIn3d { to { opacity:1; } }
+#threeCanvas { width:100%;height:100%;display:block;border-radius:32px;cursor:grab; }
+#threeCanvas:active { cursor:grabbing; }
+.canvas-glow { position:absolute;inset:-3px;border-radius:36px;z-index:-1;background:conic-gradient(from 0deg,#7c4dff,#e040d0,#ff6b2b,#f5c842,#1de9b6,#7c4dff);filter:blur(20px);opacity:0.4;animation:conicSpin 8s linear infinite; }
+@keyframes conicSpin { to { transform:rotate(360deg); } }
+.canvas-badge { position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:10px 20px;background:rgba(8,6,15,0.85);backdrop-filter:blur(20px);border:1px solid rgba(124,77,255,0.3);border-radius:50px;display:flex;align-items:center;gap:10px;font-size:0.78rem;color:var(--muted); }
+.canvas-badge strong { color:var(--teal);font-size:0.8rem; }
+.badge-dot { width:6px;height:6px;border-radius:50%;background:var(--teal);animation:badgePulse 2s ease-in-out infinite; }
+.drag-hint { position:absolute;top:12px;right:14px;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(139,130,168,0.5); }
+
+/* Scroll hint */
+.scroll-indicator { position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:10;opacity:0;animation:fadeUp 1s 2s forwards; }
+.scroll-indicator span { font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted); }
+.scroll-mouse { width:22px;height:36px;border:1px solid rgba(124,77,255,0.4);border-radius:11px;display:flex;justify-content:center;padding-top:6px; }
+.scroll-wheel { width:3px;height:8px;background:var(--violet);border-radius:2px;animation:scrollWheel 2s ease-in-out infinite; }
+@keyframes scrollWheel { 0%{transform:translateY(0);opacity:1;}100%{transform:translateY(10px);opacity:0;} }
+
+/* SECTIONS */
+.section { padding:100px 60px;position:relative;z-index:1;max-width:1200px;margin:0 auto; }
+.section-tag { display:inline-block;font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--violet);margin-bottom:12px; }
+.section-title { font-family:'Fraunces',serif;font-size:clamp(2rem,3.5vw,3rem);font-weight:700;line-height:1.15;letter-spacing:-0.02em;margin-bottom:1rem;background:linear-gradient(90deg,#fff,#c9b8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.section-sub { font-size:0.92rem;color:var(--muted);line-height:1.75;max-width:520px;margin-bottom:3.5rem; }
+
+/* ABOUT */
+.about-cards { display:grid;grid-template-columns:repeat(3,1fr);gap:20px; }
+.about-card { padding:2rem;background:var(--card-bg);border:1px solid var(--border);border-radius:24px;transition:transform 0.4s cubic-bezier(0.22,1,0.36,1),border-color 0.3s,box-shadow 0.3s;position:relative;overflow:hidden;opacity:0;transform:translateY(40px);will-change:transform; }
+.about-card.revealed { opacity:1;transform:translateY(0); }
+.about-card:nth-child(1){transition-delay:0s;} .about-card:nth-child(2){transition-delay:0.12s;} .about-card:nth-child(3){transition-delay:0.24s;}
+.about-card::before { content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity 0.3s; }
+.about-card:nth-child(1)::before{background:linear-gradient(90deg,#7c4dff,#e040d0);}
+.about-card:nth-child(2)::before{background:linear-gradient(90deg,#ff6b2b,#f5c842);}
+.about-card:nth-child(3)::before{background:linear-gradient(90deg,#1de9b6,#7c4dff);}
+.about-card:hover { border-color:var(--border-hover);transform:translateY(-8px) scale(1.02);box-shadow:0 20px 50px rgba(0,0,0,0.4); }
+.about-card:hover::before { opacity:1; }
+.card-icon { width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:1.2rem; }
+.ci-v{background:rgba(124,77,255,0.18);} .ci-o{background:rgba(255,107,43,0.18);} .ci-t{background:rgba(29,233,182,0.15);}
+.about-card h3 { font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600;margin-bottom:10px;color:var(--text); }
+.about-card p { font-size:0.83rem;color:var(--muted);line-height:1.75; }
+
+/* FEATURES */
+.features-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:20px; }
+.feat-card { padding:1.8rem;background:var(--card-bg);border:1px solid var(--border);border-radius:20px;display:flex;align-items:flex-start;gap:16px;transition:transform 0.4s cubic-bezier(0.22,1,0.36,1),border-color 0.3s,box-shadow 0.3s;cursor:default;opacity:0;transform:translateX(-30px);will-change:transform; }
+.feat-card.revealed { opacity:1;transform:translateX(0); }
+.feat-card:nth-child(1){transition-delay:0s;} .feat-card:nth-child(2){transition-delay:0.1s;} .feat-card:nth-child(3){transition-delay:0.2s;} .feat-card:nth-child(4){transition-delay:0.3s;}
+.feat-card:hover { border-color:var(--border-hover);transform:translateX(6px);box-shadow:0 10px 30px rgba(0,0,0,0.3); }
+.feat-icon-box { width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px; }
+.fib1{background:rgba(124,77,255,0.18);} .fib2{background:rgba(245,200,66,0.15);} .fib3{background:rgba(29,233,182,0.15);} .fib4{background:rgba(255,107,43,0.15);}
+.feat-card h4 { font-size:0.9rem;font-weight:600;margin-bottom:5px; }
+.feat-card p { font-size:0.78rem;color:var(--muted);line-height:1.6; }
+
+/* STATS */
+.stats-strip { background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:50px 60px;position:relative;z-index:1;overflow:hidden; }
+.stats-strip::before { content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(124,77,255,0.04),transparent);animation:statsShimmer 6s linear infinite; }
+@keyframes statsShimmer { to { left:150%; } }
+.stats-inner { max-width:1080px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:30px; }
+.stat-item { text-align:center;opacity:0;transform:translateY(20px); }
+.stat-item.revealed { opacity:1;transform:translateY(0);transition:all 0.6s ease; }
+.stat-item:nth-child(1){transition-delay:0s;} .stat-item:nth-child(2){transition-delay:0.12s;} .stat-item:nth-child(3){transition-delay:0.24s;} .stat-item:nth-child(4){transition-delay:0.36s;}
+.stat-num { font-family:'Fraunces',serif;font-size:2.8rem;font-weight:700;line-height:1;margin-bottom:6px;display:block; }
+.sn1{color:#7c4dff;} .sn2{color:#1de9b6;} .sn3{color:#ff6b2b;} .sn4{color:#f5c842;}
+.stat-label { font-size:0.78rem;color:var(--muted);font-weight:400; }
+
+/* CONTACT */
+.contact-card { max-width:680px;margin:0 auto;padding:3rem;background:var(--card-bg);border:1px solid var(--border);border-radius:28px;position:relative;overflow:hidden;text-align:center;opacity:0;transform:translateY(30px);transition:transform 0.4s cubic-bezier(0.22,1,0.36,1),opacity 0.7s ease,box-shadow 0.3s;will-change:transform; }
+.contact-card.revealed { opacity:1;transform:translateY(0); }
+.contact-card:hover { box-shadow:0 30px 60px rgba(124,77,255,0.2); }
+.contact-card::before { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#7c4dff,#e040d0,#ff6b2b,#f5c842,#1de9b6);background-size:300%;animation:gradientSlide 5s linear infinite; }
+@keyframes gradientSlide { 0%{background-position:0%;}100%{background-position:300%;} }
+.contact-card h3 { font-family:'Fraunces',serif;font-size:1.6rem;font-weight:600;margin-bottom:2rem;background:linear-gradient(90deg,#fff,#c9b8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.contact-items { display:flex;flex-direction:column;gap:14px;margin-bottom:2rem; }
+.contact-item { display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 20px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;font-size:0.88rem;color:var(--muted);transition:all 0.22s; }
+.contact-item:hover { border-color:var(--border-hover);color:var(--text); }
+.contact-item span { font-size:18px; }
+.btn-contact { display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border:none;border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.85rem;font-weight:600;color:#fff;cursor:pointer;background:linear-gradient(135deg,#7c4dff,#e040d0);text-decoration:none;box-shadow:0 4px 16px rgba(124,77,255,0.35);transition:all 0.25s; }
+.btn-contact:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(224,64,208,0.45); }
+
+/* FOOTER */
+footer { position:relative;z-index:1;border-top:1px solid var(--border);padding:40px 60px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px; }
+.footer-brand { display:flex;align-items:center;gap:10px;text-decoration:none; }
+.footer-brand .flogo { width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#7c4dff,#e040d0);display:flex;align-items:center;justify-content:center;font-size:14px; }
+.footer-brand span { font-family:'Fraunces',serif;font-size:1rem;font-weight:600;background:linear-gradient(90deg,#c9b8ff,#f0a0e0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.footer-links { display:flex;gap:24px; }
+.footer-links a { font-size:0.78rem;color:var(--muted2);text-decoration:none;transition:color 0.2s; }
+.footer-links a:hover { color:var(--text); }
+.footer-copy { font-size:0.75rem;color:var(--muted2); }
+
+.reveal { opacity:0;transform:translateY(30px);transition:all 0.7s cubic-bezier(0.22,1,0.36,1); }
+.reveal.active { opacity:1;transform:translateY(0); }
+
+@media(max-width:900px){
+  nav{padding:0 24px;} .nav-links{display:none;}
+  .hero-scene{padding:100px 24px 60px;}
+  .hero-inner{flex-direction:column;}
+  .hero-3d{width:320px;height:320px;}
+  .section{padding:70px 24px;}
+  .about-cards{grid-template-columns:1fr;} .features-grid{grid-template-columns:1fr;}
+  .stats-inner{grid-template-columns:1fr 1fr;} .stats-strip{padding:40px 24px;}
+  footer{flex-direction:column;align-items:flex-start;padding:32px 24px;}
+  .food-particle,.deco-ring,.accent-line{display:none;}
+}
+@media(max-width:600px){
+  body{overflow-x:hidden;} .hero-3d{width:280px;height:280px;}
+  .section{padding:48px 20px;} .stats-inner{grid-template-columns:1fr 1fr;}
+  .hero-title{font-size:1.9rem;} .section-title{font-size:1.5rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora">
+  <div class="aurora-orb orb1" id="orb1"></div>
+  <div class="aurora-orb orb2" id="orb2"></div>
+  <div class="aurora-orb orb3" id="orb3"></div>
+</div>
+<div class="grid-overlay" id="gridOverlay"></div>
+
+<nav id="navbar">
+  <a href="#home" class="nav-brand">
+    <div class="nav-logo">🍽</div>
+    <span class="nav-name">FoodLens AI</span>
+  </a>
+  <div class="nav-links">
+    <a href="#home">Home</a><a href="#about">About</a>
+    <a href="#feature">Features</a><a href="#contact">Contact</a>
+  </div>
+  <div class="nav-buttons">
+    <a href="auth.html" class="btn-nav-ghost">Register</a>
+    <a href="auth.html" class="btn-nav-fill">Login →</a>
+  </div>
+</nav>
+
+<section id="home">
+  <div class="hero-scene">
+    <div class="deco-ring ring1" id="ring1"></div>
+    <div class="deco-ring ring2" id="ring2"></div>
+    <div class="deco-ring ring3" id="ring3"></div>
+    <div class="food-particle fp1" id="fp1">🍜</div>
+    <div class="food-particle fp2" id="fp2">🥑</div>
+    <div class="food-particle fp3" id="fp3">🍋</div>
+    <div class="food-particle fp4" id="fp4">🍓</div>
+    <div class="food-particle fp5" id="fp5">🧄</div>
+    <div class="accent-line al1" id="al1"></div>
+    <div class="accent-line al2" id="al2"></div>
+
+    <div class="hero-inner">
+      <div class="hero-text" id="heroText">
+        <div class="hero-badge"><span></span> Powered by AI · 2026</div>
+        <h1 class="hero-title">
+          <span class="t1">Smart food,</span>
+          <span class="t2">your way.</span>
+        </h1>
+        <p class="hero-sub">Experience next-generation AI meal recommendations tailored to your mood, diet type, and health goals — instantly.</p>
+        <div class="mood-box">
+          <span class="mood-label">How are you feeling right now?</span>
+          <div class="mood-pills">
+            <button type="button" class="mpill active" data-value="happy">😊 Happy</button>
+            <button type="button" class="mpill" data-value="tired">😴 Tired</button>
+            <button type="button" class="mpill" data-value="stressed">😟 Stressed</button>
+          </div>
+          <select id="mood"><option value="happy">Happy</option><option value="tired">Tired</option><option value="stressed">Stressed</option></select>
+          <button class="btn-recommend" onclick="getAIRecommendation()">Get my recommendation ✦</button>
+          <div id="aiResult"></div>
+        </div>
+      </div>
+
+      <!-- 3D Scene -->
+      <div class="hero-3d" id="hero3d">
+        <div class="canvas-glow"></div>
+        <canvas id="threeCanvas"></canvas>
+        <div class="drag-hint">⟳ drag to rotate</div>
+        <div class="canvas-badge">
+          <div class="badge-dot"></div>
+          <div><strong>AI Scanning</strong> · nutritional depth</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll-indicator">
+      <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
+      <span>Scroll</span>
+    </div>
+  </div>
+</section>
+
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div class="stat-item"><span class="stat-num sn1">2.4M</span><span class="stat-label">Meals analysed</span></div>
+    <div class="stat-item"><span class="stat-num sn2">100k+</span><span class="stat-label">Happy users</span></div>
+    <div class="stat-item"><span class="stat-num sn3">98%</span><span class="stat-label">Accuracy rate</span></div>
+    <div class="stat-item"><span class="stat-num sn4">0.8s</span><span class="stat-label">Avg scan time</span></div>
+  </div>
+</div>
+
+<div id="about">
+  <div class="section reveal">
+    <div class="section-tag">About FoodLens</div>
+    <h2 class="section-title">Built for how you actually eat</h2>
+    <p class="section-sub">FoodLens AI combines cutting-edge machine learning with nutritional science to give you personalised insights — not generic advice.</p>
+    <div class="about-cards">
+      <div class="about-card"><div class="card-icon ci-v">🤖</div><h3>AI Intelligence</h3><p>Our models understand your mood patterns, dietary restrictions, and taste profile to serve truly personalised recommendations every single time.</p></div>
+      <div class="about-card"><div class="card-icon ci-o">🔐</div><h3>Secure & Private</h3><p>Your data is protected with JWT authentication and encrypted storage. We never sell your food preferences to third parties.</p></div>
+      <div class="about-card"><div class="card-icon ci-t">🌱</div><h3>Health-First Focus</h3><p>Every recommendation is nutrition-aware — balancing macros, calories, and dietary goals so you feel great, not just full.</p></div>
+    </div>
+  </div>
+</div>
+
+<div id="feature" style="border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="section reveal">
+    <div class="section-tag">Platform Features</div>
+    <h2 class="section-title">Everything you need, nothing you don't</h2>
+    <p class="section-sub">A focused set of powerful tools that make healthy eating feel effortless.</p>
+    <div class="features-grid">
+      <div class="feat-card"><div class="feat-icon-box fib1">🧠</div><div><h4>Mood-Based AI</h4><p>Tell us how you're feeling and our AI maps your emotional state to foods proven to support your mood and energy levels.</p></div></div>
+      <div class="feat-card"><div class="feat-icon-box fib2">⚡</div><div><h4>Instant Response</h4><p>Sub-second recommendations powered by our optimised inference pipeline. No waiting, no loading screens.</p></div></div>
+      <div class="feat-card"><div class="feat-icon-box fib3">🥗</div><div><h4>Diet-Aware Picks</h4><p>Veg, Non-Veg, Vegan — your diet preference is baked into every result so you never see something you can't eat.</p></div></div>
+      <div class="feat-card"><div class="feat-icon-box fib4">📊</div><div><h4>Smart Nutrition Data</h4><p>Each recommendation comes with full macro breakdown, calorie count, and a health score to help you make informed choices.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="contact">
+  <div class="section reveal" style="text-align:center;">
+    <div class="section-tag">Get in touch</div>
+    <h2 class="section-title">We'd love to hear from you</h2>
+    <p class="section-sub" style="margin:0 auto 3rem;">Have a question, partnership idea, or feedback? Our team is here for you.</p>
+    <div class="contact-card">
+      <h3>Contact FoodLens AI</h3>
+      <div class="contact-items">
+        <div class="contact-item"><span>✉️</span> <a href="mailto:joyeldilshan@gmail.com">joyeldilshan@gmail.com</a></div>
+        <div class="contact-item"><span>📞</span> +44 7700 900123</div>
+        <div class="contact-item"><span>📍</span> United Kingdom</div>
+      </div>
+      <a href="mailto:joyeldilshan@gmail.com" class="btn-contact">Send us a message →</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="#home" class="footer-brand"><div class="flogo">🍽</div><span>FoodLens AI</span></a>
+  <div class="footer-links">
+    <a href="#about">About</a><a href="#feature">Features</a>
+    <a href="#contact">Contact</a><a href="auth.html">Register</a><a href="auth.html">Login</a>
+  </div>
+  <span class="footer-copy">© 2026 FoodLens AI · All rights reserved</span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================
+   THREE.JS 3D FOOD SCENE
+============================================================ */
+(function initThree() {
+  const canvas    = document.getElementById('threeCanvas');
+  const container = document.getElementById('hero3d');
+  let W = container.offsetWidth;
+  let H = container.offsetHeight;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
+  camera.position.set(0, 1.4, 6);
+  camera.lookAt(0, 0.1, 0);
+
+  /* ── Lighting ── */
+  scene.add(new THREE.AmbientLight(0x1a0a2e, 3));
+
+  const keyLight = new THREE.PointLight(0xff8c42, 4, 14);
+  keyLight.position.set(4, 6, 4);
+  keyLight.castShadow = true;
+  scene.add(keyLight);
+
+  const fillLight = new THREE.PointLight(0x7c4dff, 5, 12);
+  fillLight.position.set(-5, 2, 2);
+  scene.add(fillLight);
+
+  const rimLight = new THREE.PointLight(0x1de9b6, 4, 12);
+  rimLight.position.set(0, -3, -5);
+  scene.add(rimLight);
+
+  const topLight = new THREE.PointLight(0xf5c842, 2.5, 10);
+  topLight.position.set(0, 7, 0);
+  scene.add(topLight);
+
+  /* ── PLATE ── */
+  const plateGeo = new THREE.CylinderGeometry(1.75, 1.55, 0.12, 72);
+  const plateMat = new THREE.MeshStandardMaterial({
+    color: 0xf8f4ff, metalness: 0.08, roughness: 0.12
+  });
+  const plate = new THREE.Mesh(plateGeo, plateMat);
+  plate.receiveShadow = true;
+  scene.add(plate);
+
+  // Plate edge rim
+  const rimGeo = new THREE.TorusGeometry(1.7, 0.06, 16, 80);
+  const rimMat = new THREE.MeshStandardMaterial({ color: 0xd8ccff, metalness: 0.4, roughness: 0.1 });
+  const plateRim = new THREE.Mesh(rimGeo, rimMat);
+  plateRim.rotation.x = Math.PI / 2;
+  plateRim.position.y = 0.06;
+  scene.add(plateRim);
+
+  // Plate underside shadow disc
+  const shadowGeo = new THREE.CircleGeometry(1.9, 64);
+  const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3 });
+  const shadowDisc = new THREE.Mesh(shadowGeo, shadowMat);
+  shadowDisc.rotation.x = -Math.PI / 2;
+  shadowDisc.position.y = -0.07;
+  scene.add(shadowDisc);
+
+  /* ── CENTRAL BOWL ── */
+  // Use a hemisphere-like shape via scaled sphere
+  const bowlGeo = new THREE.SphereGeometry(0.72, 40, 40, 0, Math.PI * 2, 0, Math.PI * 0.62);
+  const bowlMat = new THREE.MeshStandardMaterial({
+    color: 0x120d22, metalness: 0.7, roughness: 0.18
+  });
+  const bowl = new THREE.Mesh(bowlGeo, bowlMat);
+  bowl.position.y = 0.1;
+  bowl.castShadow = true;
+  scene.add(bowl);
+
+  // Inner glow disc inside bowl
+  const innerGeo = new THREE.CircleGeometry(0.64, 40);
+  const innerMat = new THREE.MeshStandardMaterial({
+    color: 0x5b2dff, emissive: 0x7c4dff, emissiveIntensity: 0.8,
+    metalness: 0, roughness: 1
+  });
+  const innerDisc = new THREE.Mesh(innerGeo, innerMat);
+  innerDisc.rotation.x = -Math.PI / 2;
+  innerDisc.position.y = 0.11;
+  scene.add(innerDisc);
+
+  // AI scan beam (vertical cylinder)
+  const beamGeo = new THREE.CylinderGeometry(0.02, 0.5, 1.2, 20, 1, true);
+  const beamMat = new THREE.MeshBasicMaterial({
+    color: 0x1de9b6, transparent: true, opacity: 0.08, side: THREE.DoubleSide
+  });
+  const beam = new THREE.Mesh(beamGeo, beamMat);
+  beam.position.y = 0.8;
+  scene.add(beam);
+
+  /* ── FOOD ITEMS orbiting the bowl ── */
+  const foodGroup = new THREE.Group();
+  scene.add(foodGroup);
+
+  const palette = [0xff6b2b, 0x4caf50, 0xf5c842, 0xe040d0, 0x1de9b6, 0xff4d6d, 0x7c4dff, 0xff9800];
+
+  // Each food item: [orbit radius, y, size, colorIdx, orbitSpeed, shape, tiltAngle]
+  const foodDefs = [
+    { r:1.05, y:0.24, s:0.21, ci:0, spd: 0.7,  sh:'sphere'    },
+    { r:0.95, y:0.22, s:0.17, ci:1, spd:-0.55, sh:'box'       },
+    { r:1.10, y:0.26, s:0.19, ci:2, spd: 0.9,  sh:'sphere'    },
+    { r:1.00, y:0.23, s:0.16, ci:3, spd:-0.75, sh:'oct'       },
+    { r:1.08, y:0.25, s:0.20, ci:4, spd: 0.6,  sh:'sphere'    },
+    { r:0.98, y:0.22, s:0.15, ci:5, spd:-0.85, sh:'box'       },
+    { r:1.12, y:0.27, s:0.18, ci:6, spd: 1.0,  sh:'sphere'    },
+    { r:1.02, y:0.24, s:0.16, ci:7, spd:-0.65, sh:'oct'       },
+  ];
+
+  const foodMeshes = foodDefs.map((d, i) => {
+    let geo;
+    if      (d.sh === 'box') geo = new THREE.BoxGeometry(d.s, d.s, d.s);
+    else if (d.sh === 'oct') geo = new THREE.OctahedronGeometry(d.s, 0);
+    else                     geo = new THREE.SphereGeometry(d.s, 24, 24);
+
+    const mat = new THREE.MeshStandardMaterial({
+      color: palette[d.ci],
+      emissive: new THREE.Color(palette[d.ci]),
+      emissiveIntensity: 0.12,
+      metalness: 0.0,
+      roughness: 0.5,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = true;
+    const angle = (i / foodDefs.length) * Math.PI * 2;
+    mesh.position.set(Math.cos(angle) * d.r, d.y, Math.sin(angle) * d.r);
+    foodGroup.add(mesh);
+    return { mesh, angle, ...d };
+  });
+
+  /* ── OUTER PARTICLE RING ── */
+  const particleGroup = new THREE.Group();
+  scene.add(particleGroup);
+  const pCount = 32;
+  for (let i = 0; i < pCount; i++) {
+    const geo = new THREE.SphereGeometry(0.035 + Math.random() * 0.055, 8, 8);
+    const col = palette[i % palette.length];
+    const mat = new THREE.MeshStandardMaterial({
+      color: col,
+      emissive: new THREE.Color(col),
+      emissiveIntensity: 0.6,
+      metalness: 0, roughness: 1,
+    });
+    const m = new THREE.Mesh(geo, mat);
+    const ang = (i / pCount) * Math.PI * 2;
+    const rad = 1.9 + Math.random() * 0.5;
+    const yy  = (Math.random() - 0.5) * 1.4;
+    m.position.set(Math.cos(ang) * rad, yy, Math.sin(ang) * rad);
+    m.userData = { ang, rad, yy, spd: 0.18 + Math.random() * 0.28, phase: Math.random() * Math.PI * 2 };
+    particleGroup.add(m);
+  }
+
+  /* ── SCAN RINGS ── */
+  function makeScanRing(color, opacity) {
+    const geo = new THREE.TorusGeometry(1.88, 0.01, 8, 80);
+    const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity });
+    const m = new THREE.Mesh(geo, mat);
+    m.rotation.x = Math.PI / 2;
+    return m;
+  }
+  const scan1 = makeScanRing(0x1de9b6, 0.75);
+  const scan2 = makeScanRing(0x7c4dff, 0.55);
+  const scan3 = makeScanRing(0xff6b2b, 0.35);
+  scene.add(scan1); scene.add(scan2); scene.add(scan3);
+
+  /* ── MOUSE / DRAG CONTROLS ── */
+  let mouseX = 0, mouseY = 0;
+  let isDragging = false, lastX = 0, lastY = 0;
+  let rotY = 0, rotX = 0;
+  let velX = 0, velY = 0;
+
+  canvas.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; lastY = e.clientY; });
+  window.addEventListener('mouseup',   () => { isDragging = false; });
+  window.addEventListener('mousemove', e => {
+    if (isDragging) {
+      velX += (e.clientX - lastX) * 0.007;
+      velY += (e.clientY - lastY) * 0.005;
+      lastX = e.clientX; lastY = e.clientY;
+    }
+    const rect = canvas.getBoundingClientRect();
+    mouseX = ((e.clientX - rect.left) / W - 0.5) * 2;
+    mouseY = ((e.clientY - rect.top)  / H - 0.5) * 2;
+  });
+  canvas.addEventListener('touchstart', e => { isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; e.preventDefault(); }, { passive: false });
+  canvas.addEventListener('touchend',   () => { isDragging = false; });
+  canvas.addEventListener('touchmove',  e => {
+    if (!isDragging) return;
+    velX += (e.touches[0].clientX - lastX) * 0.007;
+    velY += (e.touches[0].clientY - lastY) * 0.005;
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+    e.preventDefault();
+  }, { passive: false });
+
+  /* ── ANIMATION LOOP ── */
+  const clock = new THREE.Clock();
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+
+    // Drag physics
+    rotY += velX; rotX += velY;
+    velX *= 0.91; velY *= 0.91;
+    rotX = Math.max(-0.55, Math.min(0.55, rotX));
+    if (!isDragging) rotY += 0.005; // auto-spin
+
+    // Apply to groups
+    foodGroup.rotation.y      = rotY;
+    foodGroup.rotation.x      = rotX * 0.45;
+    particleGroup.rotation.y  = rotY * 0.45;
+    plate.rotation.y          = rotY * 0.15;
+
+    // Food item individual motion
+    foodMeshes.forEach((f, i) => {
+      f.angle += 0.005 * f.spd;
+      f.mesh.position.x = Math.cos(f.angle) * f.r;
+      f.mesh.position.z = Math.sin(f.angle) * f.r;
+      f.mesh.position.y = f.y + Math.sin(t * 1.3 + i * 0.9) * 0.07;
+      f.mesh.rotation.x += 0.014;
+      f.mesh.rotation.y += 0.011;
+      // emissive breathe
+      f.mesh.material.emissiveIntensity = 0.08 + Math.sin(t * 1.8 + i) * 0.08;
+    });
+
+    // Particles
+    particleGroup.children.forEach(m => {
+      const d = m.userData;
+      d.ang += d.spd * 0.008;
+      m.position.x = Math.cos(d.ang) * d.rad;
+      m.position.z = Math.sin(d.ang) * d.rad;
+      m.position.y = d.yy + Math.sin(t * 0.9 + d.phase) * 0.18;
+      m.material.emissiveIntensity = 0.3 + Math.sin(t * 1.6 + d.phase) * 0.3;
+    });
+
+    // Scan ring sweep
+    const sp = 0.55;
+    const sweep = (t * sp) % 1.8;
+    scan1.position.y = sweep - 0.5;
+    scan1.material.opacity = Math.max(0, 0.75 - Math.abs(sweep - 0.9) * 0.7);
+
+    const sweep2 = ((t * sp + 0.6) % 1.8);
+    scan2.position.y = sweep2 - 0.5;
+    scan2.material.opacity = Math.max(0, 0.55 - Math.abs(sweep2 - 0.9) * 0.6);
+
+    const sweep3 = ((t * sp + 1.2) % 1.8);
+    scan3.position.y = sweep3 - 0.5;
+    scan3.material.opacity = Math.max(0, 0.35 - Math.abs(sweep3 - 0.9) * 0.4);
+
+    // Glow disc pulse
+    innerDisc.material.emissiveIntensity = 0.55 + Math.sin(t * 2.2) * 0.35;
+
+    // Beam pulse
+    beam.material.opacity = 0.04 + Math.sin(t * 1.5) * 0.04;
+    beam.position.y = 0.7 + Math.sin(t * 0.8) * 0.1;
+
+    // Lights animate
+    keyLight.position.x = Math.sin(t * 0.35) * 5;
+    keyLight.position.z = Math.cos(t * 0.25) * 4;
+    fillLight.position.z = Math.cos(t * 0.28) * 4;
+    rimLight.intensity = 3.5 + Math.sin(t * 1.2) * 1.2;
+
+    // Camera mouse parallax
+    camera.position.x += (mouseX * 0.45 - camera.position.x) * 0.035;
+    camera.position.y += (-mouseY * 0.3 + 1.4 - camera.position.y) * 0.035;
+    camera.lookAt(0, 0.3, 0);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // Resize handler
+  window.addEventListener('resize', () => {
+    W = container.offsetWidth;
+    H = container.offsetHeight;
+    renderer.setSize(W, H);
+    camera.aspect = W / H;
+    camera.updateProjectionMatrix();
+  });
+})();
+
+/* ============================================================
+   PARALLAX ENGINE (rAF)
+============================================================ */
+let scrollY = 0, ticking = false;
+const $orb1 = document.getElementById('orb1');
+const $orb2 = document.getElementById('orb2');
+const $orb3 = document.getElementById('orb3');
+const $grid = document.getElementById('gridOverlay');
+const $heroText  = document.getElementById('heroText');
+const $hero3d    = document.getElementById('hero3d');
+const $ring1 = document.getElementById('ring1'), $ring2 = document.getElementById('ring2'), $ring3 = document.getElementById('ring3');
+const $al1 = document.getElementById('al1'), $al2 = document.getElementById('al2');
+const $fp1=document.getElementById('fp1'),$fp2=document.getElementById('fp2'),$fp3=document.getElementById('fp3'),$fp4=document.getElementById('fp4'),$fp5=document.getElementById('fp5');
+const $nav = document.getElementById('navbar');
+
+function applyParallax(sy) {
+  $orb1.style.transform = `translate(${sy*0.08}px,${sy*0.12}px)`;
+  $orb2.style.transform = `translate(${-sy*0.07}px,${-sy*0.10}px)`;
+  $orb3.style.transform = `translate(${sy*0.05}px,${sy*0.08}px)`;
+  $grid.style.transform  = `translateY(${sy*0.04}px)`;
+  $heroText.style.transform = `translateY(${sy*0.18}px)`;
+  $heroText.style.opacity   = Math.max(0, 1 - sy / 480);
+  $hero3d.style.transform   = `translateY(${sy*0.10}px)`;
+  $ring1.style.transform = `translateY(${sy*0.22}px) rotate(${sy*0.02}deg)`;
+  $ring2.style.transform = `translateY(${-sy*0.18}px) rotate(${-sy*0.025}deg)`;
+  $ring3.style.transform = `translateY(${sy*0.14}px)`;
+  $al1.style.transform = `translateY(${sy*0.26}px)`;
+  $al2.style.transform = `translateY(${-sy*0.21}px)`;
+  $fp1.style.transform = `translateY(${sy*0.30}px) rotate(${sy*0.04}deg)`;
+  $fp2.style.transform = `translateY(${-sy*0.25}px) rotate(${-sy*0.03}deg)`;
+  $fp3.style.transform = `translateY(${sy*0.20}px) rotate(${sy*0.02}deg)`;
+  $fp4.style.transform = `translateY(${-sy*0.35}px)`;
+  $fp5.style.transform = `translateY(${sy*0.15}px) rotate(${-sy*0.05}deg)`;
+  $nav.classList.toggle('scrolled', sy > 40);
+}
+
+window.addEventListener('scroll', () => {
+  scrollY = window.scrollY;
+  if (!ticking) {
+    requestAnimationFrame(() => { applyParallax(scrollY); ticking = false; });
+    ticking = true;
+  }
+}, { passive: true });
+applyParallax(0);
+
+/* ============================================================
+   SCROLL REVEAL
+============================================================ */
+function revealOnScroll() {
+  document.querySelectorAll('.reveal').forEach(el => { if(el.getBoundingClientRect().top < window.innerHeight-80) el.classList.add('active'); });
+  document.querySelectorAll('.about-card,.feat-card').forEach(el => { if(el.getBoundingClientRect().top < window.innerHeight-60) el.classList.add('revealed'); });
+  document.querySelectorAll('.stat-item').forEach(el => { if(el.getBoundingClientRect().top < window.innerHeight-60) el.classList.add('revealed'); });
+  document.querySelectorAll('.contact-card').forEach(el => { if(el.getBoundingClientRect().top < window.innerHeight-60) el.classList.add('revealed'); });
+}
+window.addEventListener('scroll', revealOnScroll, { passive: true });
+window.addEventListener('load', revealOnScroll);
+
+/* ============================================================
+   MOOD PILLS
+============================================================ */
+document.querySelectorAll('.mpill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.mpill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    document.getElementById('mood').value = p.dataset.value;
+  });
+});
+
+/* RIPPLE */
+document.querySelector('.btn-recommend').addEventListener('click', function(e) {
+  const c = document.createElement('span');
+  const d = Math.max(this.clientWidth, this.clientHeight);
+  c.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX-this.getBoundingClientRect().left-d/2}px;top:${e.clientY-this.getBoundingClientRect().top-d/2}px`;
+  c.classList.add('ripple'); this.appendChild(c);
+  setTimeout(() => c.remove(), 700);
+});
+
+/* AI RECOMMENDATION (unchanged) */
+function getAIRecommendation() {
+  const mood = document.getElementById("mood").value;
+  const resultBox = document.getElementById("aiResult");
+  const token = localStorage.getItem("token");
+  if (!token) {
+    resultBox.innerHTML = "🔒 Please <a href='auth.html' style='color:#a88bff;font-weight:600;'>login first</a> to get recommendations";
+    resultBox.classList.add('show'); return;
+  }
+  resultBox.innerHTML = "🤖 AI is thinking..."; resultBox.classList.add('show');
+  fetch("http://localhost:5000/api/ai/recommend?mood=" + mood, { headers: { "Authorization": "Bearer " + token } })
+    .then(r => r.json())
+    .then(data => {
+      resultBox.innerHTML = (!data.success || !data.data)
+        ? "❌ No food found for this mood"
+        : `🍽 <strong>${data.data.name}</strong><br>💰 Price: £${data.data.price}<br>🏷 Tags: ${data.data.tags}`;
+    })
+    .catch(() => { resultBox.innerHTML = "❌ Server error — please try again"; });
+}
+
+/* NAV HIGHLIGHT */
+window.addEventListener('scroll', () => {
+  let cur = '';
+  document.querySelectorAll('[id]').forEach(s => { if (window.scrollY >= s.offsetTop - 100) cur = s.id; });
+  document.querySelectorAll('.nav-links a').forEach(a => { a.style.color = a.getAttribute('href') === '#' + cur ? '#f2eeff' : ''; });
+}, { passive: true });
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f7f7f7;
+}
+
+.register-box {
+  width: 300px;
+  margin: 100px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+}
+
+.register-box h2 {
+  text-align: center;
+}
+
+.register-box input,
+.register-box select,
+.register-box button {
+  width: 100%;
+  margin: 8px 0;
+  padding: 8px;
+}
+
+button {
+  background: #ff7a18;
+  color: white;
+  border: none;
+  cursor: pointer;
+}

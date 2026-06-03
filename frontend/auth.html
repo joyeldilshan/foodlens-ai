@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodLens AI — Access</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+
+/* ═══════════════════════════════════════
+   RESET + TOKENS
+═══════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:          #04020d;
+  --gold:        #d4a84b;
+  --gold-bright: #f0c862;
+  --amber:       #e08a14;
+  --ember:       #c45010;
+  --cream:       #f2e8d0;
+  --text:        #ede4ff;
+  --muted:       #7a708c;
+  --dim:         #38304c;
+  --rose:        #c84860;
+  --teal:        #1de9c8;
+  --ease-snap:   cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-smooth: cubic-bezier(0.4,  0, 0.2, 1);
+
+  /* 3D glass tokens */
+  --glass-bg:      rgba(12, 8, 28, 0.55);
+  --glass-border:  rgba(255, 255, 255, 0.10);
+  --glass-shine:   rgba(255, 255, 255, 0.06);
+  --glass-shadow:  0 32px 80px rgba(0,0,0,0.7), 0 8px 24px rgba(0,0,0,0.5);
+  --glass-blur:    saturate(180%) blur(28px);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════
+   ANIMATED MESH GRADIENT BACKGROUND
+═══════════════════════════════════════ */
+.bg-mesh {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse at 15% 50%, rgba(120, 80, 200, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 20%, rgba(212, 168, 75, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 80%, rgba(200, 80, 20, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 10%, rgba(40, 20, 90, 0.25) 0%, transparent 55%),
+    #04020d;
+  animation: meshShift 14s ease-in-out infinite alternate;
+}
+@keyframes meshShift {
+  0%   { filter: hue-rotate(0deg)   brightness(1); }
+  50%  { filter: hue-rotate(8deg)   brightness(1.04); }
+  100% { filter: hue-rotate(-6deg)  brightness(0.97); }
+}
+
+/* Grain overlay */
+.grain {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px;
+}
+
+/* ═══════════════════════════════════════
+   3D FLOATING ORBS (depth layer)
+═══════════════════════════════════════ */
+.orb {
+  position: fixed; border-radius: 50%;
+  filter: blur(60px); pointer-events: none; z-index: 1;
+  animation: orbFloat 0s ease-in-out infinite alternate;
+}
+.orb-1 {
+  width: 480px; height: 480px;
+  top: -100px; left: -80px;
+  background: radial-gradient(circle, rgba(212,168,75,0.18), transparent 70%);
+  animation-duration: 9s;
+}
+.orb-2 {
+  width: 360px; height: 360px;
+  bottom: -80px; right: -60px;
+  background: radial-gradient(circle, rgba(100,60,200,0.20), transparent 70%);
+  animation-duration: 12s; animation-delay: -4s;
+}
+.orb-3 {
+  width: 260px; height: 260px;
+  top: 40%; right: 20%;
+  background: radial-gradient(circle, rgba(200,80,20,0.14), transparent 70%);
+  animation-duration: 8s; animation-delay: -2s;
+}
+@keyframes orbFloat {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(20px, 30px) scale(1.06); }
+}
+
+/* ═══════════════════════════════════════
+   LIQUID SLIDE TRANSITION SYSTEM
+   ─ Left panel: headline + sub slide
+   ─ Right panel: view-slot slides in/out
+   ─ A gold "wave" bar sweeps across mid-transition
+   ─ No full-page cover — everything stays visible
+═══════════════════════════════════════ */
+
+/* Gold wave bar — sweeps left→right on toggle */
+.slide-wave {
+  position: fixed; top: 0; bottom: 0;
+  width: 3px; left: -3px;
+  z-index: 200; pointer-events: none;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(212,168,75,0.0) 8%,
+    rgba(212,168,75,0.9) 30%,
+    rgba(240,200,98,1.0) 50%,
+    rgba(212,168,75,0.9) 70%,
+    rgba(212,168,75,0.0) 92%,
+    transparent 100%
+  );
+  box-shadow: 0 0 24px rgba(212,168,75,0.6), 0 0 60px rgba(212,168,75,0.25);
+  transition: none;
+  will-change: left;
+}
+.slide-wave.sweep {
+  animation: waveSweep 0.72s var(--ease-snap) forwards;
+}
+@keyframes waveSweep {
+  0%   { left: -3px;   opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { left: 100vw;  opacity: 0; }
+}
+
+/* Left panel text — slides out up then in from below */
+.left-headline,
+.left-sub,
+.stats {
+  transition: transform 0.48s var(--ease-snap), opacity 0.42s;
+  will-change: transform, opacity;
+}
+.slide-out-left .left-headline { transform: translateX(-40px) skewX(-2deg); opacity: 0; }
+.slide-out-left .left-sub      { transform: translateX(-30px); opacity: 0; transition-delay: 0.04s; }
+.slide-out-left .stats         { transform: translateX(-24px); opacity: 0; transition-delay: 0.08s; }
+
+.slide-in-right .left-headline { transform: translateX(40px) skewX(2deg); opacity: 0; transition: none; }
+.slide-in-right .left-sub      { transform: translateX(30px);             opacity: 0; transition: none; }
+.slide-in-right .stats         { transform: translateX(24px);             opacity: 0; transition: none; }
+
+/* Once .settling is added they animate TO natural position */
+.settling .left-headline { transform: translateX(0) skewX(0); opacity: 1; transition-delay: 0s;    }
+.settling .left-sub      { transform: translateX(0);           opacity: 1; transition-delay: 0.06s; }
+.settling .stats         { transform: translateX(0);           opacity: 1; transition-delay: 0.12s; }
+
+/* Right panel view-slot — the main slide container */
+.view-slot {
+  overflow: hidden;
+  position: relative;
+}
+
+/* Each form view slides in/out as a block */
+.form-view {
+  width: 100%;
+  /* Normal state — visible, in position */
+  transform: translateX(0);
+  opacity: 1;
+  transition:
+    transform 0.46s var(--ease-snap),
+    opacity   0.38s;
+  will-change: transform, opacity;
+}
+.form-view.hidden { display: none; }
+
+/* Exiting: slide out to the LEFT */
+.form-view.slide-exit {
+  transform: translateX(-52px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Entering: starts off-screen right, then settles */
+.form-view.slide-enter-from {
+  transform: translateX(52px);
+  opacity: 0;
+  transition: none; /* snap to start position without animation */
+}
+.form-view.slide-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Progress line (thin, just top of page) */
+.progress-line {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 2px; z-index: 300; pointer-events: none; opacity: 0;
+}
+.progress-line.running {
+  opacity: 1;
+  animation: progressSweep 0.75s var(--ease-smooth) forwards;
+}
+@keyframes progressSweep {
+  0%   { background: linear-gradient(90deg, var(--gold) 0%, transparent 0%); }
+  60%  { background: linear-gradient(90deg, transparent 0%, var(--gold-bright) 50%, transparent 100%); }
+  100% { background: linear-gradient(90deg, transparent 100%, var(--gold) 100%); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════
+   MAIN LAYOUT
+═══════════════════════════════════════ */
+.root {
+  width: 100%; height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative; z-index: 2;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════
+   LEFT PANEL — Brand & Visual
+═══════════════════════════════════════ */
+.left-panel {
+  position: relative;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: flex-start;
+  padding: 64px 60px;
+  overflow: hidden;
+}
+
+/* 3D grid */
+.left-panel::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(212,168,75,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,168,75,0.045) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(ellipse at 35% 50%, black 18%, transparent 68%);
+  transform: perspective(800px) rotateY(4deg);
+}
+
+/* Brand */
+.brand-rule {
+  width: 44px; height: 1px; background: var(--gold);
+  margin-bottom: 30px; position: relative;
+}
+.brand-rule::after {
+  content: '';
+  position: absolute; right: -7px; top: -3px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--gold-bright);
+  box-shadow: 0 0 14px rgba(240,200,98,0.7);
+}
+.brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem; font-weight: 500;
+  letter-spacing: 0.36em; text-transform: uppercase;
+  color: rgba(212,168,75,0.68);
+  margin-bottom: 52px;
+}
+
+.left-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.4rem, 4vw, 3.6rem);
+  font-weight: 400; line-height: 1.06;
+  letter-spacing: -0.025em; color: var(--cream);
+  margin-bottom: 22px;
+  /* subtle 3D depth */
+  text-shadow: 0 2px 40px rgba(212,168,75,0.12);
+}
+.left-headline em { font-style: italic; color: var(--gold-bright); display: block; }
+
+.left-sub {
+  font-size: 0.9rem; font-weight: 300; color: var(--muted);
+  line-height: 1.72; max-width: 310px; margin-bottom: 48px;
+}
+
+/* Stat pills */
+.stats { display: flex; gap: 12px; flex-wrap: wrap; }
+.stat-pill {
+  padding: 7px 15px;
+  border: 1px solid rgba(212,168,75,0.2);
+  border-radius: 50px;
+  background: rgba(212,168,75,0.055);
+  /* 3D glass pill */
+  backdrop-filter: blur(8px);
+  font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(212,168,75,0.6);
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.stat-pill:hover {
+  background: rgba(212,168,75,0.12);
+  color: var(--gold-bright);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+/* Ambient orb (state-driven) */
+.ambient-orb {
+  position: absolute; width: 650px; height: 650px; border-radius: 50%;
+  left: -220px; top: 50%; transform: translateY(-50%);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(212,168,75,0.13) 0%, rgba(180,100,20,0.06) 40%, transparent 70%);
+  transition: background 1.8s var(--ease-smooth);
+}
+.ambient-orb.register-mode {
+  background: radial-gradient(circle, rgba(100,70,200,0.11) 0%, rgba(50,25,120,0.05) 40%, transparent 70%);
+}
+
+/* Decorative rings */
+.ring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(212,168,75,0.09);
+  pointer-events: none;
+  animation: ringPulse 7s ease-in-out infinite;
+}
+.ring-1 { width:220px; height:220px; right:50px;  top:14%;    animation-delay:0s;   --op:.09; }
+.ring-2 { width:130px; height:130px; right:95px;  top:21%;    animation-delay:2s;   --op:.07; opacity:.6; }
+.ring-3 { width:340px; height:340px; right:14px;  bottom:18%; animation-delay:4s;   --op:.05; opacity:.4; }
+@keyframes ringPulse {
+  0%,100% { transform: scale(1);    opacity: var(--op); }
+  50%     { transform: scale(1.07); opacity: calc(var(--op) * 2); }
+}
+
+/* Mode indicator */
+.mode-indicator {
+  position: absolute; bottom: 42px; left: 60px;
+  display: flex; align-items: center; gap: 10px;
+}
+.mode-line { width: 26px; height: 1px; background: var(--gold); }
+.mode-label {
+  font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: rgba(212,168,75,0.5);
+}
+
+/* Vertical divider */
+.panel-divider {
+  position: fixed; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px; height: 56%;
+  background: linear-gradient(to bottom, transparent, rgba(212,168,75,0.12), transparent);
+  z-index: 3; pointer-events: none;
+}
+
+/* ═══════════════════════════════════════
+   RIGHT PANEL — Form area
+═══════════════════════════════════════ */
+.right-panel {
+  position: relative;
+  display: flex; flex-direction: column;
+  justify-content: flex-start; align-items: center;
+  /* Give room top + bottom so card doesn't press against edges */
+  padding: 24px 40px;
+  /* Scroll if card taller than viewport */
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Full height so centering works when card is short */
+  min-height: 100vh;
+}
+
+/* Vertically center the card when there's room */
+.right-panel::before {
+  content: '';
+  flex: 1;
+  min-height: 16px;
+}
+
+/* ═══════════════════════════════════════
+   3D GLASS CARD — the centrepiece
+═══════════════════════════════════════ */
+.glass-card {
+  width: 100%; max-width: 400px;
+  position: relative;
+  /* 3D perspective tilt — subtle, premium */
+  transform: perspective(1200px) rotateY(-2deg) rotateX(1deg);
+  transform-style: preserve-3d;
+  transition: transform 0.6s var(--ease-snap);
+  /* Ensure card never overflows right panel */
+  flex-shrink: 0;
+  margin: auto 0;
+}
+.glass-card:hover {
+  transform: perspective(1200px) rotateY(0deg) rotateX(0deg);
+}
+
+/* Inner glass surface */
+.glass-inner {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  /* No bottom padding — form-body handles it */
+  padding: 0 0 20px;
+  position: relative;
+  /* Allow inner scroll if somehow still overflow */
+  overflow: visible;
+  box-shadow: var(--glass-shadow);
+}
+
+/* Top gold shimmer edge */
+.glass-inner::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg,
+    transparent 5%,
+    rgba(212,168,75,0.55) 30%,
+    rgba(240,200,98,0.8) 50%,
+    rgba(212,168,75,0.55) 70%,
+    transparent 95%
+  );
+}
+
+/* Glass internal reflection */
+.glass-inner::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.04) 0%,
+    transparent 100%
+  );
+  border-radius: 24px 24px 0 0;
+  pointer-events: none;
+}
+
+/* 3D bottom edge shadow */
+.glass-card::after {
+  content: '';
+  position: absolute; bottom: -12px; left: 8%; right: 8%; height: 12px;
+  background: rgba(0,0,0,0.5);
+  filter: blur(14px);
+  border-radius: 50%;
+  transform: translateZ(-10px);
+}
+
+/* Toggle wrap sits inside glass header */
+.toggle-section {
+  padding: 16px 22px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 16px;
+}
+
+/* ═══════════════════════════════════════
+   TOGGLE — magnetic liquid pill
+═══════════════════════════════════════ */
+.toggle-track {
+  position: relative; display: flex;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 50px; padding: 4px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
+}
+.toggle-track:hover { border-color: rgba(212,168,75,0.2); }
+
+.toggle-thumb {
+  position: absolute;
+  top: 4px; bottom: 4px; left: 4px;
+  width: calc(50% - 4px);
+  border-radius: 50px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--amber) 55%, var(--ember) 100%);
+  box-shadow:
+    0 0 24px rgba(212,168,75,0.4),
+    0 2px 8px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: left 0.52s var(--ease-snap), box-shadow 0.52s;
+  pointer-events: none;
+}
+.toggle-thumb.right {
+  left: 50%;
+  box-shadow: 0 0 24px rgba(180,80,20,0.35), 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.toggle-thumb::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, transparent 55%);
+}
+
+.toggle-btn {
+  flex: 1; position: relative; z-index: 1;
+  padding: 11px 16px; border: none; background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem; font-weight: 500; letter-spacing: 0.06em;
+  cursor: pointer; border-radius: 50px;
+  transition: color 0.4s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.toggle-btn.active       { color: #050210; }
+.toggle-btn:not(.active) { color: var(--muted); }
+.toggle-btn .t-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor; opacity: 0.6;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.toggle-btn.active .t-dot { opacity: 1; transform: scale(1.4); }
+
+/* ═══════════════════════════════════════
+   FORM BODY (inside glass card)
+═══════════════════════════════════════ */
+.form-body { padding: 0 22px; }
+
+.form-eyebrow {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.7rem; font-style: italic; letter-spacing: 0.14em;
+  color: rgba(212,168,75,0.58); margin-bottom: 2px;
+}
+.form-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.65rem; font-weight: 500;
+  line-height: 1.12; letter-spacing: -0.01em;
+  color: var(--cream); margin-bottom: 3px;
+}
+.form-title em {
+  font-style: italic; font-weight: 700;
+  background: linear-gradient(135deg, var(--gold-bright), var(--amber));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.form-sub {
+  font-size: 0.79rem; color: var(--muted); font-weight: 300;
+  line-height: 1.5; margin-bottom: 14px;
+}
+.form-sub a {
+  color: var(--gold); font-weight: 400; text-decoration: none; cursor: pointer;
+  border-bottom: 1px solid rgba(212,168,75,0.3);
+  transition: color 0.2s, border-color 0.2s;
+}
+.form-sub a:hover { color: var(--gold-bright); border-color: rgba(240,200,98,0.5); }
+
+/* ═══════════════════════════════════════
+   DIET PREFERENCE CHIPS
+   (from your userRouter.js diet_pref field)
+═══════════════════════════════════════ */
+.diet-section { margin-bottom: 12px; }
+.diet-label {
+  display: block; font-size: 0.6rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); font-weight: 500; margin-bottom: 7px;
+}
+.diet-chips { display: flex; gap: 7px; flex-wrap: wrap; }
+
+.diet-chip {
+  padding: 6px 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 50px;
+  background: rgba(255,255,255,0.04);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.76rem; font-weight: 400; color: var(--muted);
+  cursor: pointer;
+  transition: all 0.24s;
+  /* 3D glass chip */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05);
+  backdrop-filter: blur(8px);
+  user-select: none;
+}
+.diet-chip:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  border-color: rgba(255,255,255,0.14);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+/* Active states per diet type */
+.diet-chip.active-any    { background:rgba(212,168,75,0.15); border-color:rgba(212,168,75,0.4); color:var(--gold-bright); box-shadow:0 0 14px rgba(212,168,75,0.2),0 2px 6px rgba(0,0,0,0.3); }
+.diet-chip.active-veg    { background:rgba(30,220,100,0.13); border-color:rgba(30,220,100,0.4); color:#4de896; box-shadow:0 0 14px rgba(30,220,100,0.18),0 2px 6px rgba(0,0,0,0.3); }
+.diet-chip.active-nonveg { background:rgba(220,80,50,0.15);  border-color:rgba(220,80,50,0.4);  color:#ff8060; box-shadow:0 0 14px rgba(220,80,50,0.2),0 2px 6px rgba(0,0,0,0.3);  }
+.diet-chip.active-vegan  { background:rgba(80,200,200,0.13); border-color:rgba(80,200,200,0.4); color:#60e8e8; box-shadow:0 0 14px rgba(80,200,200,0.18),0 2px 6px rgba(0,0,0,0.3); }
+
+/* Hidden actual select for form submission */
+#dietPref { display: none; }
+
+/* ═══════════════════════════════════════
+   FORM FIELDS
+═══════════════════════════════════════ */
+.fg { margin-bottom: 10px; }
+.flbl {
+  display: block; font-size: 0.6rem;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); font-weight: 500; margin-bottom: 5px;
+}
+.pw-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.pw-row .flbl { margin-bottom: 0; }
+.fgt {
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--dim); text-decoration: none; transition: color 0.2s;
+}
+.fgt:hover { color: var(--gold); }
+
+.fw { position: relative; }
+.fi {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  font-size: 13px; opacity: 0.26; pointer-events: none; z-index: 1;
+}
+
+/* 3D glass inputs */
+.inp {
+  width: 100%; padding: 10px 12px 10px 36px;
+  /* Glass input */
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.87rem; font-weight: 300;
+  color: var(--text); outline: none;
+  transition: border-color 0.28s, background 0.28s, box-shadow 0.28s;
+  letter-spacing: 0.02em;
+  /* 3D inner shadow */
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.25), 0 1px 0 rgba(255,255,255,0.04);
+  backdrop-filter: blur(8px);
+}
+.inp::placeholder { color: var(--dim); }
+.inp:focus {
+  border-color: rgba(212,168,75,0.48);
+  background: rgba(212,168,75,0.06);
+  box-shadow:
+    inset 0 2px 6px rgba(0,0,0,0.2),
+    0 0 0 1px rgba(212,168,75,0.18),
+    0 0 22px rgba(212,168,75,0.1);
+}
+.inp.err {
+  border-color: rgba(200,72,96,0.6);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.2), 0 0 0 1px rgba(200,72,96,0.22);
+}
+
+.eh { font-size: 0.67rem; color: var(--rose); margin-top: 3px; display: none; font-weight: 300; }
+.eh.show { display: block; }
+
+.eyebtn {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  border: none; background: transparent; cursor: pointer;
+  font-size: 13px; color: var(--muted); padding: 2px; transition: color 0.2s; z-index: 1;
+}
+.eyebtn:hover { color: var(--gold); }
+
+.extras { display: flex; align-items: center; margin: 4px 0 10px; }
+.reml { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.76rem; color: var(--muted); font-weight: 300; }
+.reml input { accent-color: var(--gold); width: 13px; height: 13px; cursor: pointer; }
+
+/* ═══════════════════════════════════════
+   3D GLASS SUBMIT BUTTON
+═══════════════════════════════════════ */
+.btn-submit {
+  width: 100%; padding: 12px; border: none; border-radius: 13px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: #050210; cursor: pointer;
+  position: relative; overflow: hidden; margin-bottom: 11px;
+  background: linear-gradient(135deg, var(--gold-bright) 0%, var(--amber) 55%, var(--ember) 100%);
+  /* 3D button look */
+  box-shadow:
+    0 6px 28px rgba(212,168,75,0.42),
+    0 2px 8px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.28),
+    inset 0 -2px 0 rgba(0,0,0,0.15);
+  transition: transform 0.18s, box-shadow 0.22s;
+}
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 40px rgba(212,168,75,0.55),
+    0 4px 12px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.28),
+    inset 0 -2px 0 rgba(0,0,0,0.15);
+}
+.btn-submit:active {
+  transform: translateY(1px);
+  box-shadow:
+    0 2px 14px rgba(212,168,75,0.3),
+    0 1px 4px rgba(0,0,0,0.5),
+    inset 0 2px 4px rgba(0,0,0,0.2);
+}
+.btn-submit.ld, .btn-submit:disabled { pointer-events: none; opacity: 0.72; }
+.btn-submit.ld .bt { opacity: 0; }
+.bt { transition: opacity 0.18s; }
+.bld { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; }
+.btn-submit.ld .bld { display: flex; }
+.spi { width: 16px; height: 16px; border: 2px solid rgba(5,2,16,0.2); border-top-color: #050210; border-radius: 50%; animation: spinR 0.7s linear infinite; }
+@keyframes spinR { to { transform: rotate(360deg); } }
+.rip { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.3); transform: scale(0); animation: ripE 0.56s linear; pointer-events: none; }
+@keyframes ripE { to { transform: scale(5); opacity: 0; } }
+
+/* Divider + socials */
+.dv { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.dv::before, .dv::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
+.dv span { font-size: 0.6rem; color: var(--dim); letter-spacing: 0.14em; text-transform: uppercase; }
+
+.social-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.sb {
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.76rem; font-weight: 300;
+  color: var(--muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: all 0.22s;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 6px rgba(0,0,0,0.2);
+  backdrop-filter: blur(8px);
+}
+.sb:hover {
+  background: rgba(255,255,255,0.09);
+  border-color: rgba(255,255,255,0.15);
+  color: var(--text);
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 12px rgba(0,0,0,0.3);
+}
+.sb svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+.sm { margin-top: 8px; font-size: 0.77rem; text-align: center; min-height: 16px; font-weight: 300; }
+.sm.ok  { color: var(--teal); }
+.sm.err { color: var(--rose); }
+
+.tms { font-size: 0.67rem; color: var(--dim); text-align: center; margin-top: 6px; }
+.tms a { color: var(--muted); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.tms a:hover { color: var(--gold); }
+
+/* Shake */
+.shake { animation: shakeX 0.42s ease; }
+@keyframes shakeX {
+  0%,100% { transform: perspective(1200px) rotateY(-2deg) rotateX(1deg); }
+  20% { transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) translateX(-7px); }
+  40% { transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) translateX(7px); }
+  60% { transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) translateX(-4px); }
+  80% { transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) translateX(4px); }
+}
+
+/* Confetti */
+.cfp { position: fixed; top: -12px; pointer-events: none; z-index: 999; animation: cffall 0s linear forwards; }
+@keyframes cffall { 0%{opacity:1;} 85%{opacity:1;} 100%{transform:translateY(100vh) rotate(900deg) scale(0.15);opacity:0;} }
+
+/* View slot */
+.view-slot { position: relative; }
+.form-view.hidden { display: none; }
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media (max-width: 840px) {
+  html, body { overflow-y: auto; }
+  .root { grid-template-columns: 1fr; grid-template-rows: auto auto; height: auto; min-height: 100vh; }
+  .left-panel  { padding: 48px 28px 36px; min-height: 260px; }
+  .right-panel { padding: 28px 18px 48px; }
+  .glass-card  { transform: none !important; }
+  .glass-card:hover { transform: none; }
+  .panel-divider { display: none; }
+  .left-headline { font-size: 2.2rem; }
+  .ring { display: none; }
+}
+@media (max-width: 480px) {
+  .social-row { grid-template-columns: 1fr; }
+  .diet-chips { gap: 6px; }
+  .diet-chip  { font-size: 0.72rem; padding: 6px 11px; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- Background layers -->
+<div class="bg-mesh"></div>
+<div class="grain"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- Liquid slide wave bar -->
+<div class="slide-wave" id="slideWave"></div>
+<div class="progress-line" id="progressLine"></div>
+<div class="panel-divider"></div>
+
+<div class="root">
+
+  <!-- ══════════════════════════
+       LEFT — Brand
+       ══════════════════════════ -->
+  <div class="left-panel">
+    <div class="ambient-orb" id="ambientOrb"></div>
+    <div class="ring ring-1"></div>
+    <div class="ring ring-2"></div>
+    <div class="ring ring-3"></div>
+
+    <div class="brand-rule"></div>
+    <div class="brand-name">FoodLens AI</div>
+
+    <h1 class="left-headline" id="leftHeadline">
+      Your table<br>awaits<br><em>you.</em>
+    </h1>
+    <p class="left-sub" id="leftSub">
+      Sign in to your personalised dining experience. Every craving, remembered.
+    </p>
+
+    <div class="stats" id="leftStats">
+      <span class="stat-pill">✦ 2.4M Meals Tracked</span>
+      <span class="stat-pill">✦ AI-Powered</span>
+      <span class="stat-pill">✦ Fine Dining</span>
+    </div>
+
+    <div class="mode-indicator">
+      <div class="mode-line"></div>
+      <span class="mode-label" id="modeLabel">Sign In Mode</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════
+       RIGHT — 3D Glass Card
+       ══════════════════════════ -->
+  <div class="right-panel">
+    <div class="glass-card" id="glassCard">
+      <div class="glass-inner">
+
+        <!-- Toggle inside glass header -->
+        <div class="toggle-section">
+          <div class="toggle-track" role="tablist" aria-label="Authentication mode">
+            <div class="toggle-thumb" id="toggleThumb"></div>
+            <button class="toggle-btn active" id="btnLogin"
+                    role="tab" aria-selected="true"
+                    onclick="switchTo('login')">
+              <span class="t-dot"></span>Sign In
+            </button>
+            <button class="toggle-btn" id="btnReg"
+                    role="tab" aria-selected="false"
+                    onclick="switchTo('register')">
+              <span class="t-dot"></span>Register
+            </button>
+          </div>
+        </div>
+
+        <!-- Form body -->
+        <div class="form-body">
+
+          <!-- Shared form header (updated by JS) -->
+          <div class="form-eyebrow" id="formEyebrow">Welcome Back</div>
+          <div class="form-title"   id="formTitle">Enter the <em>Restaurant.</em></div>
+          <p   class="form-sub"     id="formSub"></p>
+
+          <div class="view-slot">
+
+            <!-- ── LOGIN ── -->
+            <div class="form-view" id="loginForm">
+              <div class="fg">
+                <label class="flbl">Email Address</label>
+                <div class="fw">
+                  <span class="fi">✉</span>
+                  <input class="inp" type="email" id="lEmail"
+                         placeholder="you@foodlens.ai" autocomplete="email">
+                </div>
+                <div class="eh" id="lEmailErr">Please enter a valid email address</div>
+              </div>
+              <div class="fg">
+                <div class="pw-row">
+                  <label class="flbl">Password</label>
+                  <a href="#" class="fgt">Forgot password?</a>
+                </div>
+                <div class="fw">
+                  <span class="fi">🔒</span>
+                  <input class="inp" type="password" id="lPass"
+                         placeholder="Your password" autocomplete="current-password">
+                  <button class="eyebtn" onclick="toggleEye('lPass',this)" tabindex="-1">👁</button>
+                </div>
+                <div class="eh" id="lPassErr">Password is required</div>
+              </div>
+              <div class="extras">
+                <label class="reml">
+                  <input type="checkbox" id="remMe">
+                  <span>Keep me signed in for 30 days</span>
+                </label>
+              </div>
+              <button class="btn-submit" id="loginBtn" onclick="doLogin(event)">
+                <span class="bt">Enter the Restaurant</span>
+                <div class="bld"><div class="spi"></div></div>
+              </button>
+              <div class="dv"><span>or continue with</span></div>
+              <div class="social-row">
+                <button class="sb">
+                  <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                  Google
+                </button>
+                <button class="sb">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.15-2.18 1.27-2.16 3.8.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.84M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                  Apple
+                </button>
+              </div>
+              <div class="sm" id="loginMsg"></div>
+            </div>
+
+            <!-- ── REGISTER ── -->
+            <div class="form-view hidden" id="regForm">
+              <div class="fg">
+                <label class="flbl">Username</label>
+                <div class="fw">
+                  <span class="fi">👤</span>
+                  <input class="inp" type="text" id="rName"
+                         placeholder="your_username" autocomplete="username">
+                </div>
+                <div class="eh" id="rNameErr">Username must be at least 3 characters</div>
+              </div>
+              <div class="fg">
+                <label class="flbl">Email Address</label>
+                <div class="fw">
+                  <span class="fi">✉</span>
+                  <input class="inp" type="email" id="rEmail"
+                         placeholder="you@foodlens.ai" autocomplete="email">
+                </div>
+                <div class="eh" id="rEmailErr">Please enter a valid email address</div>
+              </div>
+              <div class="fg">
+                <label class="flbl">Password</label>
+                <div class="fw">
+                  <span class="fi">🔒</span>
+                  <input class="inp" type="password" id="rPass"
+                         placeholder="Min. 8 characters" autocomplete="new-password">
+                  <button class="eyebtn" onclick="toggleEye('rPass',this)" tabindex="-1">👁</button>
+                </div>
+                <div class="eh" id="rPassErr">Password must be at least 8 characters</div>
+              </div>
+
+              <!-- ── DIET PREFERENCE (from your userRouter.js) ── -->
+              <div class="diet-section">
+                <label class="diet-label">Dietary Preference</label>
+                <div class="diet-chips">
+                  <div class="diet-chip active-any" data-value=""      onclick="selectDiet(this)">⭐ Any</div>
+                  <div class="diet-chip"             data-value="Veg"  onclick="selectDiet(this)">🥦 Vegetarian</div>
+                  <div class="diet-chip"             data-value="Non-Veg" onclick="selectDiet(this)">🍗 Non-Veg</div>
+                  <div class="diet-chip"             data-value="Vegan"   onclick="selectDiet(this)">🌱 Vegan</div>
+                </div>
+                <!-- Hidden select that holds the value for form submission -->
+                <select id="dietPref">
+                  <option value="">Any</option>
+                  <option value="Veg">Veg</option>
+                  <option value="Non-Veg">Non-Veg</option>
+                  <option value="Vegan">Vegan</option>
+                </select>
+              </div>
+
+              <button class="btn-submit" id="regBtn" onclick="doRegister(event)">
+                <span class="bt">Reserve My Seat</span>
+                <div class="bld"><div class="spi"></div></div>
+              </button>
+              <div class="dv"><span>or continue with</span></div>
+              <div class="social-row">
+                <button class="sb">
+                  <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                  Google
+                </button>
+                <button class="sb">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.15-2.18 1.27-2.16 3.8.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.84M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                  Apple
+                </button>
+              </div>
+              <div class="tms">By joining you agree to our <a href="#">Terms</a> &amp; <a href="#">Privacy Policy</a></div>
+              <div class="sm" id="regMsg"></div>
+            </div>
+
+          </div><!-- /view-slot -->
+        </div><!-- /form-body -->
+      </div><!-- /glass-inner -->
+    </div><!-- /glass-card -->
+  </div><!-- /right-panel -->
+</div><!-- /root -->
+
+<script>
+/* ─── FIX 1: wait declared first — no TDZ crash ─── */
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/* ═══════════════════════════════
+   STATE
+═══════════════════════════════ */
+let mode = 'login';
+let busy = false;
+
+/* ═══════════════════════════════
+   CONTENT MAP
+═══════════════════════════════ */
+const CONTENT = {
+  login: {
+    headline:     'Your table<br>awaits<br><em>you.</em>',
+    sub:          'Sign in to your personalised dining experience. Every craving, remembered.',
+    eyebrow:      'Welcome Back',
+    title:        'Enter the <em>Restaurant.</em>',
+    subLink:      'No account? <a onclick="switchTo(\'register\')">Create one free →</a>',
+    modeLabel:    'Sign In Mode',
+    stats:        ['✦ 2.4M Meals Tracked', '✦ AI-Powered', '✦ Fine Dining'],
+    orbRegister:  false,
+  },
+  register: {
+    headline:     'Join the<br>future of<br><em>dining.</em>',
+    sub:          'Reserve your digital table. Let FoodLens AI learn your taste and elevate every meal.',
+    eyebrow:      'Create Account',
+    title:        'Reserve Your <em>Table.</em>',
+    subLink:      'Already a guest? <a onclick="switchTo(\'login\')">Sign in here →</a>',
+    modeLabel:    'Register Mode',
+    stats:        ['✦ Free to Join', '✦ No Credit Card', '✦ 100k+ Diners'],
+    orbRegister:  true,
+  }
+};
+
+/* Set initial sub-link on load */
+document.getElementById('formSub').innerHTML = CONTENT[mode].subLink;
+
+/* ═══════════════════════════════
+   DIET CHIP SELECTOR
+   Matches your userRouter.js diet_pref values:
+   "", "Veg", "Non-Veg", "Vegan"
+═══════════════════════════════ */
+const dietActiveClass = {
+  '':        'active-any',
+  'Veg':     'active-veg',
+  'Non-Veg': 'active-nonveg',
+  'Vegan':   'active-vegan',
+};
+
+function selectDiet(el) {
+  /* Remove all active classes from all chips */
+  document.querySelectorAll('.diet-chip').forEach(c => {
+    c.classList.remove('active-any','active-veg','active-nonveg','active-vegan');
+  });
+  /* Apply correct active class */
+  const val = el.dataset.value;
+  el.classList.add(dietActiveClass[val]);
+  /* Sync to hidden select */
+  document.getElementById('dietPref').value = val;
+}
+
+/* Reset diet chips when switching to register view */
+function resetDietChips() {
+  document.querySelectorAll('.diet-chip').forEach(c => {
+    c.classList.remove('active-any','active-veg','active-nonveg','active-vegan');
+  });
+  const firstChip = document.querySelector('.diet-chip[data-value=""]');
+  if (firstChip) firstChip.classList.add('active-any');
+  document.getElementById('dietPref').value = '';
+}
+
+/* ═══════════════════════════════
+   LIQUID SLIDE TOGGLE
+   Sequence:
+   1. Left text slides out to the left
+   2. Gold wave sweeps across screen
+   3. During wave: content swaps
+   4. New left text slides in from right
+   5. Right form slides out left, new slides in from right
+═══════════════════════════════ */
+async function switchTo(toMode) {
+  if (toMode === mode || busy) return;
+  busy = true;
+
+  /* Progress line */
+  const prog = document.getElementById('progressLine');
+  prog.classList.remove('running');
+  void prog.offsetWidth;
+  prog.classList.add('running');
+  setTimeout(() => prog.classList.remove('running'), 900);
+
+  const leftPanel = document.querySelector('.left-panel');
+  const wave      = document.getElementById('slideWave');
+
+  /* ── Phase 1: Slide LEFT panel text out ── */
+  leftPanel.classList.add('slide-out-left');
+  await wait(320);
+
+  /* ── Phase 2: Gold wave sweeps across ── */
+  wave.classList.add('sweep');
+
+  /* ── Phase 3: Swap left content during wave mid-point ── */
+  await wait(200);
+
+  const c = CONTENT[toMode];
+
+  /* Update left panel */
+  leftPanel.classList.remove('slide-out-left');
+  leftPanel.classList.add('slide-in-right');
+  document.getElementById('leftHeadline').innerHTML = c.headline;
+  document.getElementById('leftSub').textContent    = c.sub;
+  document.getElementById('modeLabel').textContent  = c.modeLabel;
+  document.getElementById('ambientOrb').classList.toggle('register-mode', c.orbRegister);
+  document.getElementById('leftStats').innerHTML    =
+    c.stats.map(s => `<span class="stat-pill">${s}</span>`).join('');
+
+  /* Update form header */
+  document.getElementById('formEyebrow').textContent = c.eyebrow;
+  document.getElementById('formTitle').innerHTML     = c.title;
+  document.getElementById('formSub').innerHTML       = c.subLink;
+
+  /* ── Phase 4: Slide out the CURRENT form view ── */
+  const outView = document.getElementById(mode === 'login' ? 'loginForm' : 'regForm');
+  outView.classList.add('slide-exit');
+
+  /* Switch mode now */
+  mode = toMode;
+
+  /* Toggle thumb + buttons */
+  document.getElementById('toggleThumb').classList.toggle('right', mode === 'register');
+  document.getElementById('btnLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('btnReg').classList.toggle('active',   mode === 'register');
+  document.getElementById('btnLogin').setAttribute('aria-selected', String(mode === 'login'));
+  document.getElementById('btnReg').setAttribute('aria-selected',   String(mode === 'register'));
+
+  await wait(200);
+
+  /* Hide old view, prepare new view off-screen right */
+  outView.classList.remove('slide-exit');
+  outView.classList.add('hidden');
+
+  const inView = document.getElementById(mode === 'login' ? 'loginForm' : 'regForm');
+  inView.classList.remove('hidden');
+  inView.classList.add('slide-enter-from');
+
+  /* Force reflow so the off-screen position is painted before we animate in */
+  void inView.offsetWidth;
+
+  /* ── Phase 5: Slide new form IN from the right ── */
+  inView.classList.remove('slide-enter-from');
+  inView.classList.add('slide-enter-to');
+
+  /* Settle left panel text in from right */
+  leftPanel.classList.remove('slide-in-right');
+  leftPanel.classList.add('settling');
+
+  await wait(500);
+
+  /* Cleanup */
+  inView.classList.remove('slide-enter-to');
+  leftPanel.classList.remove('settling');
+  wave.classList.remove('sweep');
+
+  if (mode === 'register') resetDietChips();
+  clearAll();
+
+  busy = false;
+}
+
+/* ═══════════════════════════════
+   3D card mouse tilt
+═══════════════════════════════ */
+const card = document.getElementById('glassCard');
+document.querySelector('.right-panel').addEventListener('mousemove', e => {
+  const rect = card.getBoundingClientRect();
+  const cx = rect.left + rect.width  / 2;
+  const cy = rect.top  + rect.height / 2;
+  const dx = (e.clientX - cx) / rect.width;
+  const dy = (e.clientY - cy) / rect.height;
+  const rotX = dy * -6;  /* tilt up/down max 6deg */
+  const rotY = dx *  8;  /* tilt left/right max 8deg */
+  card.style.transform =
+    `perspective(1200px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+});
+document.querySelector('.right-panel').addEventListener('mouseleave', () => {
+  card.style.transform = 'perspective(1200px) rotateY(-2deg) rotateX(1deg)';
+});
+
+/* ═══════════════════════════════
+   FORM HELPERS
+═══════════════════════════════ */
+function toggleEye(id, btn) {
+  const f = document.getElementById(id);
+  f.type = f.type === 'password' ? 'text' : 'password';
+  btn.textContent = f.type === 'password' ? '👁' : '🙈';
+}
+
+function addRipple(btn, e) {
+  const c = document.createElement('span');
+  const d = Math.max(btn.clientWidth, btn.clientHeight);
+  const r = btn.getBoundingClientRect();
+  c.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;
+  c.className = 'rip';
+  btn.appendChild(c);
+  setTimeout(() => c.remove(), 600);
+}
+
+function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+function setErr(inputId, hintId, show) {
+  const inp  = document.getElementById(inputId);
+  const hint = document.getElementById(hintId);
+  if (inp)  inp.classList.toggle('err', show);
+  if (hint) hint.classList.toggle('show', show);
+}
+
+function clearAll() {
+  ['lEmail','lPass','rName','rEmail','rPass'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('err');
+  });
+  ['lEmailErr','lPassErr','rNameErr','rEmailErr','rPassErr'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('show');
+  });
+  ['loginMsg','regMsg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = ''; el.className = 'sm'; }
+  });
+}
+
+['lEmail','lPass','rName','rEmail','rPass'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', () => {
+    el.classList.remove('err');
+    const h = document.getElementById(id + 'Err');
+    if (h) h.classList.remove('show');
+  });
+});
+
+/* ═══════════════════════════════
+   LOGIN
+═══════════════════════════════ */
+async function doLogin(e) {
+  addRipple(e.currentTarget, e);
+  const email = document.getElementById('lEmail').value.trim();
+  const pass  = document.getElementById('lPass').value.trim();
+  const msg   = document.getElementById('loginMsg');
+  const btn   = document.getElementById('loginBtn');
+
+  let ok = true;
+  if (!isEmail(email)) { setErr('lEmail','lEmailErr',true); ok = false; }
+  if (!pass)           { setErr('lPass','lPassErr',true);   ok = false; }
+  if (!ok) {
+    card.classList.add('shake');
+    setTimeout(() => card.classList.remove('shake'), 440);
+    return;
+  }
+
+  btn.classList.add('ld');
+  msg.innerHTML = ''; msg.className = 'sm';
+  try {
+    const res  = await fetch('http://localhost:5000/api/user/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Login failed');
+
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user',  JSON.stringify(data.user));
+    msg.textContent = '✦ Welcome back. Your table is ready.';
+    msg.className = 'sm ok';
+    confetti();
+    setTimeout(() => {
+      window.location.href = data.user.role === 'admin'
+        ? 'admin-dashboard.html' : 'user-dashboard.html';
+    }, 1500);
+  } catch (err) {
+    msg.textContent = '✕ ' + (err.message || 'Server not responding');
+    msg.className = 'sm err';
+  } finally {
+    btn.classList.remove('ld');
+  }
+}
+
+/* ═══════════════════════════════
+   REGISTER — includes diet_pref
+   matching your userRouter.js body:
+   { name, email, password, diet_pref }
+═══════════════════════════════ */
+async function doRegister(e) {
+  addRipple(e.currentTarget, e);
+  const name      = document.getElementById('rName').value.trim();
+  const email     = document.getElementById('rEmail').value.trim();
+  const pass      = document.getElementById('rPass').value.trim();
+  const diet_pref = document.getElementById('dietPref').value; /* ← from chips */
+  const msg       = document.getElementById('regMsg');
+  const btn       = document.getElementById('regBtn');
+
+  let ok = true;
+  if (name.length < 3)  { setErr('rName','rNameErr',true);   ok = false; }
+  if (!isEmail(email))  { setErr('rEmail','rEmailErr',true);  ok = false; }
+  if (pass.length < 8)  { setErr('rPass','rPassErr',true);    ok = false; }
+  if (!ok) {
+    card.classList.add('shake');
+    setTimeout(() => card.classList.remove('shake'), 440);
+    return;
+  }
+
+  btn.classList.add('ld');
+  msg.innerHTML = ''; msg.className = 'sm';
+  try {
+    const res  = await fetch('http://localhost:5000/api/user/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      /* Sends all 4 fields your route expects */
+      body: JSON.stringify({ name, email, password: pass, diet_pref })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Registration failed');
+
+    msg.textContent = '✦ Table reserved. Welcome to FoodLens AI.';
+    msg.className = 'sm ok';
+    confetti();
+    setTimeout(() => switchTo('login'), 2000);
+  } catch (err) {
+    msg.textContent = '✕ ' + (err.message || 'Server not responding');
+    msg.className = 'sm err';
+  } finally {
+    btn.classList.remove('ld');
+  }
+}
+
+/* ═══════════════════════════════
+   CONFETTI
+═══════════════════════════════ */
+function confetti() {
+  const cols = ['#f0c862','#d4a84b','#e08a14','#c45010','#c84860','#b8a0f0','#fff','#c8f0d8'];
+  for (let i = 0; i < 90; i++) {
+    const c = document.createElement('div'); c.className = 'cfp';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.backgroundColor = cols[Math.floor(Math.random() * cols.length)];
+    const dur = 1.8 + Math.random() * 2.2;
+    c.style.animationDuration = dur + 's';
+    c.style.animationDelay    = Math.random() * 0.5 + 's';
+    c.style.borderRadius = ['2px','50%','0','30%'][Math.floor(Math.random() * 4)];
+    c.style.width  = (4 + Math.random() * 7) + 'px';
+    c.style.height = (4 + Math.random() * 7) + 'px';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), (dur + 1.2) * 1000);
+  }
+}
+</script>
+</body>
+</html>

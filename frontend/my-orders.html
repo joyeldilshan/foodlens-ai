@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FoodLens AI | My Orders</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --deep:#08060f; --sidebar-bg:#0d0a1a; --card-bg:#110e1c; --border:rgba(255,255,255,0.08);
+  --border-hover:rgba(255,255,255,0.18); --text:#f2eeff; --muted:#8b82a8; --muted2:#5c5474;
+  --violet:#7c4dff; --pink:#e040d0; --teal:#1de9b6; --orange:#ff6b2b;
+  --gold:#f5c842; --rose:#ff4d6d; --sidebar-w:260px;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--deep);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);display:flex;}
+
+.aurora{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0;}
+.orb1{width:600px;height:600px;background:radial-gradient(circle,#7c4dff44,#e040d022);top:-200px;left:-100px;animation:orbFloat 18s ease-in-out infinite alternate,orbIn 1.5s 0.3s forwards;}
+.orb2{width:500px;height:500px;background:radial-gradient(circle,#1de9b633,#7c4dff22);bottom:-150px;right:-100px;animation:orbFloat 22s 1s ease-in-out infinite alternate,orbIn 1.5s 0.6s forwards;}
+@keyframes orbFloat{0%{transform:translate(0,0) scale(1);}50%{transform:translate(40px,-60px) scale(1.1);}100%{transform:translate(-30px,40px) scale(0.95);}}
+@keyframes orbIn{to{opacity:1;}}
+.grid-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:60px 60px;}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);height:100vh;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;z-index:10;overflow:hidden;}
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#7c4dff,#e040d0,#ff6b2b,#f5c842,#1de9b6,#7c4dff);background-size:300%;animation:gradSlide 5s linear infinite;}
+@keyframes gradSlide{0%{background-position:0%;}100%{background-position:300%;}}
+.sidebar-head{padding:22px 20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.s-logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#7c4dff,#e040d0);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 16px rgba(124,77,255,0.45);flex-shrink:0;animation:logoPulse 3s ease-in-out infinite;}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 16px rgba(124,77,255,0.45);}50%{box-shadow:0 0 28px rgba(224,64,208,0.6);}}
+.s-brand{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;background:linear-gradient(90deg,#c9b8ff,#f0a0e0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.s-sub{font-size:0.63rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--teal);display:block;margin-top:1px;}
+.sidebar-nav{flex:1;padding:14px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;}
+.nav-section-label{font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted2);font-weight:600;padding:8px 10px 4px;margin-top:4px;}
+.nav-btn{width:100%;padding:10px 14px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-radius:12px;display:flex;align-items:center;gap:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.82rem;font-weight:500;transition:all 0.22s;text-align:left;position:relative;text-decoration:none;box-sizing:border-box;}
+.nav-icon{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(255,255,255,0.05);flex-shrink:0;transition:all 0.22s;}
+.nav-btn:hover{background:rgba(255,255,255,0.05);color:var(--text);}
+.nav-btn:hover .nav-icon{background:rgba(124,77,255,0.15);}
+.nav-btn.active{background:rgba(124,77,255,0.14);color:var(--text);border:1px solid rgba(124,77,255,0.22);}
+.nav-btn.active .nav-icon{background:rgba(124,77,255,0.25);}
+.nav-btn.active::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:3px;border-radius:0 3px 3px 0;background:var(--violet);}
+.nav-btn.danger{color:var(--rose);}
+.nav-btn.danger:hover{background:rgba(255,77,109,0.1);color:var(--rose);}
+.sidebar-footer{padding:14px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7c4dff,#1de9b6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.user-info strong{display:block;font-size:0.76rem;font-weight:600;color:var(--text);}
+.user-info span{font-size:0.66rem;color:var(--muted2);}
+
+/* MAIN */
+.main{flex:1;height:100vh;overflow-y:auto;margin-left:var(--sidebar-w);position:relative;z-index:1;display:flex;flex-direction:column;}
+.topbar{height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:rgba(8,6,15,0.65);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;}
+.topbar h1{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:600;background:linear-gradient(90deg,#fff,#c9b8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-pill{padding:7px 14px;border:1px solid var(--border);border-radius:50px;font-size:0.72rem;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:6px;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:sDot 2s ease-in-out infinite;}
+@keyframes sDot{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* CONTENT */
+.content{flex:1;padding:32px;max-width:900px;margin:0 auto;width:100%;}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0);}}
+
+/* SUMMARY STRIP */
+.summary-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  margin-bottom:28px;
+  opacity:0;transform:translateY(16px);
+  animation:fadeUp 0.5s 0.1s ease forwards;
+}
+.scard{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:16px 18px;transition:all 0.3s;position:relative;overflow:hidden;}
+.scard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity 0.3s;}
+.scard:nth-child(1)::before{background:linear-gradient(90deg,#7c4dff,#e040d0);}
+.scard:nth-child(2)::before{background:linear-gradient(90deg,#f5c842,#ff6b2b);}
+.scard:nth-child(3)::before{background:linear-gradient(90deg,#1de9b6,#7c4dff);}
+.scard:nth-child(4)::before{background:linear-gradient(90deg,#e040d0,#ff4d6d);}
+.scard:hover{border-color:var(--border-hover);}
+.scard:hover::before{opacity:1;}
+.scard-label{font-size:0.67rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.scard-num{font-family:'Fraunces',serif;font-size:1.7rem;font-weight:700;line-height:1;}
+.n-v{color:#a88bff;}.n-g{color:#f5c842;}.n-t{color:#1de9b6;}.n-r{color:#ff4d6d;}
+
+/* FILTER ROW */
+.filter-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;
+  opacity:0;transform:translateY(12px);
+  animation:fadeUp 0.5s 0.2s ease forwards;
+}
+.filter-pill{
+  padding:8px 16px;border-radius:50px;border:1px solid var(--border);
+  background:rgba(255,255,255,0.03);color:var(--muted);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:0.78rem;font-weight:500;
+  cursor:pointer;transition:all 0.22s;
+}
+.filter-pill:hover{border-color:var(--border-hover);color:var(--text);}
+.filter-pill.active{background:rgba(124,77,255,0.14);border-color:rgba(124,77,255,0.4);color:#c9b8ff;}
+
+/* ORDERS LIST */
+.orders-list{
+  display:flex;flex-direction:column;gap:14px;
+  opacity:0;transform:translateY(16px);
+  animation:fadeUp 0.5s 0.3s ease forwards;
+}
+
+.order-card{
+  background:var(--card-bg);border:1px solid var(--border);border-radius:20px;
+  padding:20px 22px;position:relative;overflow:hidden;
+  transition:all 0.3s;cursor:pointer;
+}
+.order-card:hover{border-color:var(--border-hover);transform:translateY(-2px);}
+.order-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;transition:opacity 0.3s;}
+.order-card.s-placed::before   {background:#7c4dff;}
+.order-card.s-preparing::before{background:#f5c842;}
+.order-card.s-on_the_way::before{background:#ff6b2b;}
+.order-card.s-delivered::before{background:#1de9b6;}
+.order-card.s-cancelled::before{background:#ff4d6d;}
+
+.oc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.oc-id{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;}
+.oc-id span{font-family:'Plus Jakarta Sans',sans-serif;font-size:0.72rem;color:var(--muted);font-weight:400;margin-left:8px;}
+
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:50px;font-size:0.72rem;font-weight:700;border:1px solid;}
+.sb-placed   {color:#a88bff;border-color:rgba(124,77,255,0.35);background:rgba(124,77,255,0.1);}
+.sb-preparing{color:#f5c842;border-color:rgba(245,200,66,0.35);background:rgba(245,200,66,0.08);}
+.sb-on_the_way{color:#ff6b2b;border-color:rgba(255,107,43,0.35);background:rgba(255,107,43,0.08);}
+.sb-delivered{color:#1de9b6;border-color:rgba(29,233,182,0.35);background:rgba(29,233,182,0.08);}
+.sb-cancelled{color:#ff4d6d;border-color:rgba(255,77,109,0.3);background:rgba(255,77,109,0.07);}
+.sb-dot{width:6px;height:6px;border-radius:50%;animation:sDot 1.5s ease-in-out infinite;}
+.sb-dot.placed   {background:#a88bff;}
+.sb-dot.preparing{background:#f5c842;}
+.sb-dot.on_the_way{background:#ff6b2b;}
+.sb-dot.delivered{background:#1de9b6;animation:none;}
+.sb-dot.cancelled{background:#ff4d6d;animation:none;}
+
+.oc-items{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.item-chip{display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;font-size:0.75rem;color:var(--muted);}
+.item-chip img{width:24px;height:24px;border-radius:5px;object-fit:cover;background:#1a1425;}
+.more-items{font-size:0.75rem;color:var(--muted2);padding:5px 8px;}
+
+.oc-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid rgba(255,255,255,0.05);flex-wrap:wrap;gap:10px;}
+.oc-meta{display:flex;align-items:center;gap:16px;}
+.oc-meta-item{font-size:0.75rem;color:var(--muted);}
+.oc-meta-item strong{color:var(--text);font-weight:600;}
+.oc-total{font-family:'Fraunces',serif;font-size:1.15rem;font-weight:700;color:#f5c842;}
+
+.btn-track{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 18px;border:none;border-radius:10px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:0.78rem;font-weight:700;
+  color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#7c4dff,#e040d0);
+  transition:all 0.22s;box-shadow:0 3px 12px rgba(124,77,255,0.3);
+  text-decoration:none;
+}
+.btn-track:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(224,64,208,0.4);}
+.btn-reorder{
+  padding:8px 16px;border:1px solid var(--border);border-radius:10px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:0.78rem;font-weight:500;
+  color:var(--muted);cursor:pointer;background:transparent;
+  transition:all 0.22s;
+}
+.btn-reorder:hover{border-color:var(--border-hover);color:var(--text);}
+
+/* EMPTY STATE */
+.empty-state{padding:70px 20px;text-align:center;}
+.empty-icon{font-size:52px;opacity:0.2;margin-bottom:16px;}
+.empty-state h3{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:600;margin-bottom:8px;}
+.empty-state p{font-size:0.83rem;color:var(--muted);line-height:1.7;margin-bottom:20px;}
+.btn-order-now{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;border:none;border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.85rem;font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(135deg,#7c4dff,#e040d0);text-decoration:none;box-shadow:0 4px 16px rgba(124,77,255,0.35);}
+
+/* LOADING SKELETON */
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.skel-card{background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:20px 22px;margin-bottom:14px;}
+.skel-line{height:14px;margin-bottom:10px;}
+.skel-line.w60{width:60%;}
+.skel-line.w40{width:40%;}
+.skel-line.w80{width:80%;}
+
+/* ========================================
+   MOBILE RESPONSIVE
+======================================== */
+@media (max-width: 900px) {
+  .sidebar { display:none !important; }
+  .main    { margin-left:0 !important; }
+  .layout  { flex-direction:column !important; padding:16px !important; gap:16px !important; }
+  .left,.right,.left-panel,.right-panel,.left-form { width:100% !important; min-height:unset !important; }
+  .two-col,.analytics-grid,.form-grid { grid-template-columns:1fr !important; }
+  .stats-grid,.analytics-stats,.summary-strip,.revenue-highlight { grid-template-columns:1fr 1fr !important; }
+  .hero-inner { flex-direction:column !important; gap:32px !important; }
+  .hero-visual { width:100% !important; }
+  .about-cards,.features-grid { grid-template-columns:1fr !important; }
+  .stats-inner { grid-template-columns:1fr 1fr !important; }
+}
+@media (max-width: 600px) {
+  body { overflow-x:hidden; }
+  .topbar { padding:0 16px !important; height:56px !important; }
+  .topbar h1,.topbar-title { font-size:1rem !important; }
+  .topbar-left p,.topbar-pill { display:none !important; }
+  .sidebar { display:none !important; }
+  .main { margin-left:0 !important; }
+  .content { padding:14px !important; }
+  .section { padding:48px 20px !important; }
+  .layout { padding:12px !important; }
+  nav { padding:0 16px !important; }
+  .nav-links { display:none !important; }
+  .stats-grid,.analytics-stats,.summary-strip,.revenue-highlight,
+  .two-col,.analytics-grid,.form-grid,.notif-form-grid,
+  .social-row,.social-btns { grid-template-columns:1fr !important; }
+  .food-grid { grid-template-columns:repeat(2,1fr) !important; gap:10px !important; }
+  .card,.form-card,.chart-card,.order-card,.summary-card,.stat-card { border-radius:14px !important; padding:14px !important; }
+  .hero-title,.headline { font-size:1.9rem !important; }
+  .hero-inner { flex-direction:column !important; }
+  .hero-visual { display:none; }
+  #home > div { padding:80px 20px 40px !important; }
+  .profile-hero { padding:16px !important; flex-wrap:wrap !important; }
+  .profile-stats { display:none !important; }
+  .tabs { flex-wrap:wrap !important; }
+  .tab-btn { flex:1 1 40% !important; font-size:0.72rem !important; padding:8px !important; }
+  .steps-row { grid-template-columns:repeat(2,1fr) !important; gap:14px !important; }
+  .steps-line-track { display:none !important; }
+  .cart-panel { width:100vw !important; right:0 !important; }
+  .main.cart-open { margin-right:0 !important; }
+  .notif-panel { width:calc(100vw - 20px) !important; right:10px !important; left:10px !important; }
+  .btn-save,.btn-submit,.btn-recommend { width:100% !important; }
+  .panel-foot { flex-direction:column !important; align-items:stretch !important; }
+  .panel-foot .btn-save,.panel-foot .btn-secondary { width:100% !important; }
+  .right-panel { padding:20px 16px !important; }
+  .left-panel { display:none !important; }
+  .form-wrap { padding:0 !important; }
+  .form-full { grid-column:1 !important; }
+  .table-wrap { overflow-x:auto !important; }
+  table { min-width:480px; }
+  .search-bar { flex-wrap:wrap !important; }
+  .search-bar input { flex:1 1 100% !important; }
+  .btn-track { width:100% !important; }
+  .mood-pills,.diet-pills,.diet-tags,.tag-row,.dz-actions { flex-wrap:wrap !important; gap:8px !important; }
+  .section-title { font-size:1.5rem !important; }
+  .sec-head h2,.section-header h2 { font-size:1rem !important; }
+  .chat-window { width:100vw !important; right:0 !important; border-radius:20px 20px 0 0 !important; }
+  .chat-fab { bottom:14px !important; right:14px !important; }
+  .stat-num,.an-stat-num,.scard-num { font-size:1.3rem !important; }
+  .oc-top,.oc-bottom { flex-direction:column !important; align-items:flex-start !important; gap:8px !important; }
+  .oc-meta { flex-wrap:wrap !important; gap:6px !important; }
+  .hero-text h2 { font-size:1.8rem !important; }
+  .hero-text p,.hero-sub { font-size:0.85rem !important; }
+  .rest-row { gap:8px !important; }
+  .rest-chip { padding:8px 12px !important; font-size:0.78rem !important; }
+  .form-grid { grid-template-columns:1fr !important; }
+  .notif-form-grid { grid-template-columns:1fr !important; }
+  .summary-strip { grid-template-columns:1fr 1fr !important; }
+  .revenue-highlight { grid-template-columns:1fr !important; }
+  .an-stat { padding:12px 14px !important; }
+}
+
+
+/* ── Hamburger menu ── */
+.hamburger {
+  display:none;width:38px;height:38px;border-radius:10px;
+  border:1px solid var(--border);background:rgba(255,255,255,0.04);
+  align-items:center;justify-content:center;cursor:pointer;
+  font-size:18px;flex-shrink:0;transition:all 0.2s;
+}
+.hamburger:hover{border-color:var(--border-hover);background:rgba(124,77,255,0.1);}
+@media(max-width:900px){.hamburger{display:flex;}}
+
+/* Mobile sidebar overlay */
+.sidebar-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
+  z-index:99;
+}
+.sidebar-overlay.show{display:block;}
+.sidebar.mobile-open{
+  display:flex !important;
+  position:fixed;left:0;top:0;z-index:100;
+  transform:translateX(0) !important;
+  animation:slideInSidebar 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes slideInSidebar{from{transform:translateX(-100%);}to{transform:translateX(0);}}
+
+</style>
+</head>
+<body>
+
+<div class="aurora"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+<div class="grid-overlay"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-head">
+    <div class="s-logo">🍽</div>
+    <div><div class="s-brand">FoodLens AI</div><span class="s-sub">User Dashboard</span></div>
+  </div>
+  <div class="sidebar-nav">
+    <span class="nav-section-label">Explore</span>
+    <a href="user-dashboard.html" class="nav-btn"><div class="nav-icon">🏠</div> Home</a>
+    <a href="user-dashboard.html" class="nav-btn"><div class="nav-icon">🍽</div> Restaurants</a>
+    <a href="my-orders.html" class="nav-btn active"><div class="nav-icon">📋</div> My Orders</a>
+    <span class="nav-section-label">Account</span>
+    <a href="profile.html" class="nav-btn"><div class="nav-icon">👤</div> Profile</a>
+    <button class="nav-btn danger" onclick="logout()"><div class="nav-icon">🔐</div> Logout</button>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-avatar" id="sidebarAvatar">U</div>
+    <div class="user-info">
+      <strong id="sidebarName">Loading...</strong>
+      <span id="sidebarDiet">Member</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <h1>My Orders</h1>
+    <button class="hamburger" onclick="openMobileSidebar()" aria-label="Menu">☰</button>
+      <div class="topbar-right">
+      <div class="topbar-pill"><span class="status-dot"></span> Live tracking</div>
+      <div class="topbar-pill">🕐 <span id="clock">--:--</span></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Summary strip -->
+    <div class="summary-strip">
+      <div class="scard"><div class="scard-label">Total Orders</div><div class="scard-num n-v" id="statTotal">—</div></div>
+      <div class="scard"><div class="scard-label">Total Spent</div><div class="scard-num n-g" id="statSpent">—</div></div>
+      <div class="scard"><div class="scard-label">Delivered</div><div class="scard-num n-t" id="statDelivered">—</div></div>
+      <div class="scard"><div class="scard-label">In Progress</div><div class="scard-num n-r" id="statActive">—</div></div>
+    </div>
+
+    <!-- Filter pills -->
+    <div class="filter-row">
+      <button class="filter-pill active" data-filter="all"    onclick="filterOrders('all',this)">All Orders</button>
+      <button class="filter-pill" data-filter="placed"        onclick="filterOrders('placed',this)">🛒 Placed</button>
+      <button class="filter-pill" data-filter="preparing"     onclick="filterOrders('preparing',this)">👨‍🍳 Preparing</button>
+      <button class="filter-pill" data-filter="on_the_way"    onclick="filterOrders('on_the_way',this)">🛵 On the Way</button>
+      <button class="filter-pill" data-filter="delivered"     onclick="filterOrders('delivered',this)">✅ Delivered</button>
+      <button class="filter-pill" data-filter="cancelled"     onclick="filterOrders('cancelled',this)">❌ Cancelled</button>
+    </div>
+
+    <!-- Orders list -->
+    <div class="orders-list" id="ordersList">
+      <!-- skeleton loading -->
+      <div class="skel-card"><div class="skeleton skel-line w60"></div><div class="skeleton skel-line w40"></div><div class="skeleton skel-line w80"></div></div>
+      <div class="skel-card"><div class="skeleton skel-line w40"></div><div class="skeleton skel-line w60"></div><div class="skeleton skel-line w80"></div></div>
+      <div class="skel-card"><div class="skeleton skel-line w80"></div><div class="skeleton skel-line w40"></div><div class="skeleton skel-line w60"></div></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = "";
+const token = localStorage.getItem("token");
+if (!token) location.href = "login.html";
+
+let allOrders = [];
+
+const STATUS_LABEL = {
+  placed:    "Order Placed",
+  preparing: "Preparing",
+  on_the_way:"On the Way",
+  delivered: "Delivered",
+  cancelled: "Cancelled"
+};
+
+/* CLOCK */
+function updateClock(){
+  const n=new Date();
+  document.getElementById("clock").textContent=
+    n.getHours().toString().padStart(2,"0")+":"+n.getMinutes().toString().padStart(2,"0");
+}
+updateClock(); setInterval(updateClock,10000);
+
+/* LOAD USER */
+fetch(API+"/api/profile",{headers:{Authorization:"Bearer "+token}})
+  .then(r=>r.json()).then(d=>{
+    const u=d.user||d;
+    const L=(u.name||"U")[0].toUpperCase();
+    document.getElementById("sidebarAvatar").textContent=L;
+    document.getElementById("sidebarName").textContent=u.name||"—";
+    document.getElementById("sidebarDiet").textContent=u.diet_pref||"Member";
+  }).catch(()=>{});
+
+/* LOAD ORDERS */
+async function loadOrders(){
+  try{
+    const res  = await fetch(API+"/api/orders/my",{headers:{Authorization:"Bearer "+token}});
+    const data = await res.json();
+
+    if(!res.ok) throw new Error(data.message||"Failed");
+
+    allOrders = data.orders || [];
+
+    // Compute summary stats
+    const total     = allOrders.length;
+    const delivered = allOrders.filter(o=>o.status==="delivered").length;
+    const active    = allOrders.filter(o=>!["delivered","cancelled"].includes(o.status)).length;
+    const spent     = allOrders.reduce((a,o)=>a+parseFloat(o.total||o.amount||0),0);
+
+    document.getElementById("statTotal").textContent     = total;
+    document.getElementById("statSpent").textContent     = "£"+spent.toFixed(2);
+    document.getElementById("statDelivered").textContent = delivered;
+    document.getElementById("statActive").textContent    = active;
+
+    renderOrders(allOrders);
+
+  }catch(err){
+    document.getElementById("ordersList").innerHTML=`
+      <div class="empty-state">
+        <div class="empty-icon">❌</div>
+        <h3>Could not load orders</h3>
+        <p>${err.message||"Please try again."}</p>
+      </div>`;
+  }
+}
+
+/* RENDER ORDERS */
+function renderOrders(orders){
+  const el = document.getElementById("ordersList");
+
+  if(!orders.length){
+    el.innerHTML=`
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>No orders yet</h3>
+        <p>You haven't placed any orders yet.<br>Explore our restaurants and order something delicious!</p>
+        <a href="user-dashboard.html" class="btn-order-now">🍽 Browse Menu</a>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = orders.map(order=>{
+    const status  = order.status || "placed";
+    const label   = STATUS_LABEL[status] || status;
+    const total   = parseFloat(order.total||order.amount||0).toFixed(2);
+    const date    = formatDate(order.created_at);
+    const items   = order.items || [];
+    const isActive= !["delivered","cancelled"].includes(status);
+
+    // Item chips (show max 3)
+    const itemChips = items.slice(0,3).map(it=>`
+      <div class="item-chip">
+        <img src="${API}/uploads/${it.image||''}" onerror="this.style.display='none'">
+        ${it.name}
+      </div>`).join("");
+    const moreChip = items.length>3
+      ? `<div class="more-items">+${items.length-3} more</div>`
+      : "";
+
+    return `
+    <div class="order-card s-${status}" onclick="location.href='track-order.html?order=${order.id}'">
+      <div class="oc-top">
+        <div class="oc-id">Order #${order.id}<span>${date}</span></div>
+        <div class="status-badge sb-${status}">
+          <span class="sb-dot ${status}"></span>
+          ${label}
+        </div>
+      </div>
+
+      ${items.length ? `<div class="oc-items">${itemChips}${moreChip}</div>` : ""}
+
+      <div class="oc-bottom">
+        <div class="oc-meta">
+          <div class="oc-meta-item">Total: <strong class="oc-total">£${total}</strong></div>
+          ${order.eta && isActive ? `<div class="oc-meta-item">ETA: <strong style="color:#f5c842;">~${order.eta} min</strong></div>` : ""}
+          ${order.address ? `<div class="oc-meta-item">📍 ${order.address.split(',')[0]}</div>` : ""}
+        </div>
+        <div style="display:flex;gap:8px;">
+          ${isActive
+            ? `<a href="track-order.html?order=${order.id}" class="btn-track" onclick="event.stopPropagation()">🛵 Track Order</a>`
+            : `<a href="track-order.html?order=${order.id}" class="btn-track" onclick="event.stopPropagation()">📄 View Details</a>`
+          }
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* FILTER */
+function filterOrders(filter, btn){
+  document.querySelectorAll(".filter-pill").forEach(p=>p.classList.remove("active"));
+  btn.classList.add("active");
+  const filtered = filter==="all" ? allOrders : allOrders.filter(o=>o.status===filter);
+  renderOrders(filtered);
+}
+
+/* HELPERS */
+function formatDate(iso){
+  if(!iso) return "—";
+  const d=new Date(iso);
+  return d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+}
+
+/* ===== MOBILE SIDEBAR ===== */
+function openMobileSidebar() {
+  var sb = document.querySelector('.sidebar');
+  var ov = document.getElementById('sidebarOverlay');
+  if (sb) sb.style.cssText = 'display:flex !important; position:fixed; left:0; top:0; z-index:1000; height:100vh; animation:slideInSidebar 0.3s ease;';
+  if (ov) ov.classList.add('show');
+}
+function closeMobileSidebar() {
+  var sb = document.querySelector('.sidebar');
+  var ov = document.getElementById('sidebarOverlay');
+  if (sb) sb.style.cssText = '';
+  if (ov) ov.classList.remove('show');
+}
+
+function logout(){ localStorage.clear(); location.href="login.html"; }
+
+loadOrders();
+</script>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+</body>
+</html>
