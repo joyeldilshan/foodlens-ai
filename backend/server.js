@@ -42,7 +42,7 @@ app.use(express.json());
 /* ===============================
    SERVE FRONTEND
 ================================= */
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(path.join(__dirname, "frontend")));
 
 /* ===============================
    API ROUTES
@@ -87,7 +87,7 @@ app.get("/api/health", async (req, res) => {
    DEFAULT ROUTE
 ================================= */
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+  res.sendFile(path.join(__dirname, "frontend/index.html"));
 });
 
 // Start server
