@@ -708,7 +708,7 @@ function getAIRecommendation() {
     resultBox.classList.add('show'); return;
   }
   resultBox.innerHTML = "🤖 AI is thinking..."; resultBox.classList.add('show');
-  fetch("http://localhost:5000/api/ai/recommend?mood=" + mood, { headers: { "Authorization": "Bearer " + token } })
+  fetch("/api/ai/recommend?mood=" + mood, { headers: { "Authorization": "Bearer " + token } })
     .then(r => r.json())
     .then(data => {
       resultBox.innerHTML = (!data.success || !data.data)

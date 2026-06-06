@@ -35,8 +35,8 @@ const session = await stripe.checkout.sessions.create({
   metadata: {
     user_id: req.user.id
   },
-  success_url: `http://localhost:5000/success.html?session_id={CHECKOUT_SESSION_ID}`,
-  cancel_url: "http://localhost:5000/user-dashboard.html",
+  success_url: `${process.env.CLIENT_URL || "http://localhost:5000"}/success.html?session_id={CHECKOUT_SESSION_ID}`,
+  cancel_url: `${process.env.CLIENT_URL || "http://localhost:5000"}/user-dashboard.html`,
 });
 
 router.get("/verify/:id", async (req, res) => {

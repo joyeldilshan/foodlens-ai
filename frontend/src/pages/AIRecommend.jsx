@@ -7,7 +7,7 @@ function AIRecommend() {
   const getRecommendation = async () => {
     if (!mood) return alert("Please select a mood!");
     try {
-      const res = await fetch(`http://localhost:5000/api/ai/recommend/${mood}`);
+      const res = await fetch(`/api/ai/recommend/${mood}`);
       const data = await res.json();
       setFoods(data);
     } catch (err) {
