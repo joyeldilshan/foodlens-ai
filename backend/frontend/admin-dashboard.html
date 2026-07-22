@@ -766,14 +766,15 @@ img.preview {
             <textarea id="rDesc" placeholder="Brief description..."></textarea>
           </div>
         </div>
-        <div style="margin-top:16px;">
-          <button class="btn-save" onclick="saveRestaurant()">Save Restaurant →</button>
+        <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+          <button class="btn-save" id="rSaveBtn" onclick="saveRestaurant()">Save Restaurant →</button>
+          <button class="btn-save" id="rCancelBtn" onclick="cancelRestaurantEdit()" style="display:none;background:rgba(255,255,255,0.08);box-shadow:none;border:1px solid var(--border);color:var(--muted);">Cancel</button>
         </div>
       </div>
 
       <div class="table-wrap">
         <table>
-          <thead><tr><th>ID</th><th>Image</th><th>Name</th><th>Description</th></tr></thead>
+          <thead><tr><th>ID</th><th>Image</th><th>Name</th><th>Description</th><th>Actions</th></tr></thead>
           <tbody id="restaurantTable">
             <tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🍽</div><p>No restaurants yet</p></div></td></tr>
           </tbody>
@@ -810,14 +811,15 @@ img.preview {
             <input type="file" id="mImage">
           </div>
         </div>
-        <div style="margin-top:16px;">
-          <button class="btn-save" onclick="saveMenu()">Save Menu Item →</button>
+        <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+          <button class="btn-save" id="mSaveBtn" onclick="saveMenu()">Save Menu Item →</button>
+          <button class="btn-save" id="mCancelBtn" onclick="cancelMenuEdit()" style="display:none;background:rgba(255,255,255,0.08);box-shadow:none;border:1px solid var(--border);color:var(--muted);">Cancel</button>
         </div>
       </div>
 
       <div class="table-wrap">
         <table>
-          <thead><tr><th>ID</th><th>Image</th><th>Name</th><th>Restaurant</th><th>Price</th></tr></thead>
+          <thead><tr><th>ID</th><th>Image</th><th>Name</th><th>Restaurant</th><th>Price</th><th>Actions</th></tr></thead>
           <tbody id="menuTable">
             <tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><p>No menu items yet</p></div></td></tr>
           </tbody>
@@ -1236,17 +1238,21 @@ function showError(msg='Failed!') {
 }
 
 /* ===== RESTAURANTS ===== */
+let editingRestaurantId = null;      // null = adding, otherwise = editing this id
+let restaurantCache = [];            // keep loaded rows so Edit can read current values
+
 async function loadRestaurants() {
   try {
     const res  = await apiFetch(API + '/restaurants');
     const json = await res.json();
     const data = json.data || json;
+    restaurantCache = data;
     const tbody = document.getElementById('restaurantTable');
     const sel   = document.getElementById('menuRestaurant');
     tbody.innerHTML = '';
     sel.innerHTML = '<option value="">— Select restaurant —</option>';
     if (!data.length) {
-      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">🍽</div><p>No restaurants yet</p></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🍽</div><p>No restaurants yet</p></div></td></tr>`;
       return;
     }
     data.forEach(r => {
@@ -1255,10 +1261,52 @@ async function loadRestaurants() {
         <td><img class="preview" src="${BASE}uploads/${r.image}" onerror="this.src=''" /></td>
         <td><strong>${r.name}</strong></td>
         <td>${r.description}</td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-save" style="padding:5px 12px;font-size:0.7rem;background:rgba(124,77,255,0.15);box-shadow:none;border:1px solid rgba(124,77,255,0.3);color:#a88bff;" onclick="editRestaurant(${r.id})">Edit</button>
+            <button class="btn-save" style="padding:5px 12px;font-size:0.7rem;background:rgba(255,77,109,0.15);box-shadow:none;border:1px solid rgba(255,77,109,0.3);color:var(--rose);" onclick="deleteRestaurant(${r.id})">Delete</button>
+          </div>
+        </td>
       </tr>`;
       sel.innerHTML += `<option value="${r.id}">${r.name}</option>`;
     });
   } catch(e) { console.error('loadRestaurants error:', e); }
+}
+
+function editRestaurant(id) {
+  const r = restaurantCache.find(x => x.id === id);
+  if (!r) return;
+  editingRestaurantId = id;
+  document.getElementById('rName').value = r.name;
+  document.getElementById('rDesc').value = r.description || '';
+  document.getElementById('rImage').value = '';
+  document.getElementById('rSaveBtn').textContent = 'Update Restaurant →';
+  document.getElementById('rCancelBtn').style.display = 'inline-flex';
+  show('restaurants', document.querySelector('.nav-btn[onclick^="show(\'restaurants\'"]'));
+  document.getElementById('rName').scrollIntoView({ behavior:'smooth', block:'center' });
+  document.getElementById('rName').focus();
+}
+
+function cancelRestaurantEdit() {
+  editingRestaurantId = null;
+  document.getElementById('rName').value = '';
+  document.getElementById('rDesc').value = '';
+  document.getElementById('rImage').value = '';
+  document.getElementById('rSaveBtn').textContent = 'Save Restaurant →';
+  document.getElementById('rCancelBtn').style.display = 'none';
+}
+
+async function deleteRestaurant(id) {
+  if (!confirm('Delete this restaurant? Its menu items may also be affected.')) return;
+  try {
+    const res = await apiFetch(API + '/restaurants/' + id, { method:'DELETE' });
+    if (res.ok) {
+      showSuccess('Restaurant deleted');
+      loadRestaurants(); loadMenu(); loadStats();
+    } else {
+      showError('Failed to delete restaurant');
+    }
+  } catch(e) { showError('Server error: ' + e.message); }
 }
 
 async function saveRestaurant() {
@@ -1272,12 +1320,13 @@ async function saveRestaurant() {
     fd.append('description', desc);
     const rImage = document.getElementById('rImage');
     if (rImage.files[0]) fd.append('image', rImage.files[0]);
-    const res = await apiFetch(API + '/restaurants', { method:'POST', body:fd });
+
+    const url    = editingRestaurantId ? (API + '/restaurants/' + editingRestaurantId) : (API + '/restaurants');
+    const method = editingRestaurantId ? 'PUT' : 'POST';
+    const res = await apiFetch(url, { method, body:fd });
     if (res.ok) {
-      showSuccess('Restaurant saved!');
-      document.getElementById('rName').value = '';
-      document.getElementById('rDesc').value = '';
-      rImage.value = '';
+      showSuccess(editingRestaurantId ? 'Restaurant updated!' : 'Restaurant saved!');
+      cancelRestaurantEdit();
       loadRestaurants(); loadStats();
     } else {
       const d = await res.json().catch(() => ({}));
@@ -1287,15 +1336,19 @@ async function saveRestaurant() {
 }
 
 /* ===== MENU ===== */
+let editingMenuId = null;
+let menuCache = [];
+
 async function loadMenu() {
   try {
     const res  = await apiFetch(API + '/menu');
     const json = await res.json();
     const data = json.data || json;
+    menuCache = data;
     const tbody = document.getElementById('menuTable');
     tbody.innerHTML = '';
     if (!data.length) {
-      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><p>No menu items yet</p></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div><p>No menu items yet</p></div></td></tr>`;
       return;
     }
     data.forEach(m => {
@@ -1305,9 +1358,55 @@ async function loadMenu() {
         <td><strong>${m.name}</strong></td>
         <td>${m.restaurant_name || '—'}</td>
         <td><span class="table-badge tb-price">£${m.price}</span></td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-save" style="padding:5px 12px;font-size:0.7rem;background:rgba(124,77,255,0.15);box-shadow:none;border:1px solid rgba(124,77,255,0.3);color:#a88bff;" onclick="editMenu(${m.id})">Edit</button>
+            <button class="btn-save" style="padding:5px 12px;font-size:0.7rem;background:rgba(255,77,109,0.15);box-shadow:none;border:1px solid rgba(255,77,109,0.3);color:var(--rose);" onclick="deleteMenu(${m.id})">Delete</button>
+          </div>
+        </td>
       </tr>`;
     });
   } catch(e) { console.error('loadMenu error:', e); }
+}
+
+function editMenu(id) {
+  const m = menuCache.find(x => x.id === id);
+  if (!m) return;
+  editingMenuId = id;
+  document.getElementById('menuRestaurant').value = m.restaurant_id;
+  document.getElementById('mName').value  = m.name;
+  document.getElementById('mPrice').value = m.price;
+  document.getElementById('mTags').value  = m.tags || '';
+  document.getElementById('mImage').value = '';
+  document.getElementById('mSaveBtn').textContent = 'Update Menu Item →';
+  document.getElementById('mCancelBtn').style.display = 'inline-flex';
+  show('menu', document.querySelector('.nav-btn[onclick^="show(\'menu\'"]'));
+  document.getElementById('mName').scrollIntoView({ behavior:'smooth', block:'center' });
+  document.getElementById('mName').focus();
+}
+
+function cancelMenuEdit() {
+  editingMenuId = null;
+  document.getElementById('mName').value  = '';
+  document.getElementById('mPrice').value = '';
+  document.getElementById('mTags').value  = '';
+  document.getElementById('mImage').value = '';
+  document.getElementById('menuRestaurant').value = '';
+  document.getElementById('mSaveBtn').textContent = 'Save Menu Item →';
+  document.getElementById('mCancelBtn').style.display = 'none';
+}
+
+async function deleteMenu(id) {
+  if (!confirm('Delete this menu item?')) return;
+  try {
+    const res = await apiFetch(API + '/menu/' + id, { method:'DELETE' });
+    if (res.ok) {
+      showSuccess('Menu item deleted');
+      loadMenu(); loadStats();
+    } else {
+      showError('Failed to delete menu item');
+    }
+  } catch(e) { showError('Server error: ' + e.message); }
 }
 
 async function saveMenu() {
@@ -1325,13 +1424,13 @@ async function saveMenu() {
     fd.append('tags', document.getElementById('mTags').value);
     const mImage = document.getElementById('mImage');
     if (mImage.files[0]) fd.append('image', mImage.files[0]);
-    const res = await apiFetch(API + '/menu', { method:'POST', body:fd });
+
+    const url    = editingMenuId ? (API + '/menu/' + editingMenuId) : (API + '/menu');
+    const method = editingMenuId ? 'PUT' : 'POST';
+    const res = await apiFetch(url, { method, body:fd });
     if (res.ok) {
-      showSuccess('Menu item saved!');
-      document.getElementById('mName').value  = '';
-      document.getElementById('mPrice').value = '';
-      document.getElementById('mTags').value  = '';
-      mImage.value = '';
+      showSuccess(editingMenuId ? 'Menu item updated!' : 'Menu item saved!');
+      cancelMenuEdit();
       loadMenu(); loadStats();
     } else {
       const d = await res.json().catch(() => ({}));
