@@ -1542,6 +1542,11 @@ function startNotifPolling() {
   setInterval(fetchNotif, 30000);
 }
 
+function logout() {
+  localStorage.removeItem('token');
+  window.location.href = 'auth.html';
+}
+
 startNotifPolling();
 
 

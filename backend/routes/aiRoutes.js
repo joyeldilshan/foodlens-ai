@@ -274,24 +274,7 @@ router.get("/history", authMiddleware, async (req, res) => {
   }
 });
 
-/* ============================================================
-   SQL — run once in phpMyAdmin to enable chat history:
 
-   CREATE TABLE IF NOT EXISTS chat_history (
-     id         INT AUTO_INCREMENT PRIMARY KEY,
-     user_id    INT NOT NULL,
-     role       VARCHAR(20) NOT NULL DEFAULT 'user',
-     message    TEXT NOT NULL,
-     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-   );
-============================================================ */
-
-
-/* ============================================================
-   GET /api/ai/recommend  (legacy alias for /suggest)
-   Keeps backward compatibility with old frontend code
-============================================================ */
 router.get("/recommend", authMiddleware, async (req, res) => {
   try {
     const { mood = "happy" } = req.query;
